@@ -51,9 +51,11 @@ Painel único por franqueado (login do Portal do Franqueado), **no ar desde 14/1
 ## Pendências em aberto
 
 1. Conversão acima de 100%: as cotações excluem "Renovação Própria Corretora", mas os efetivados incluem renovações (mesma regra do Indicador original). Falta decidir.
-2. Logins sem vínculo: Ricardo Macedo Portela, Ernani, Frutuoso, Mano Motors, Vale Representações etc. Editar `vinculos.json`.
-3. Pipeline da campanha (outro projeto): Outubro/26 está subestimado (só um dos exports diários é usado). Aguardando autorização para corrigir.
-4. Publicar online (Render + Vercel, como os outros sistemas) depois de aprovado o teste.
+2. Logins sem vínculo: Ricardo Macedo Portela, Ernani, Frutuoso, Mano Motors, Vale Representações etc. Para vincular, editar a variável **BI_VINCULOS_JSON no Render** (e o `vinculos.json` local, usado só no Mac).
+3. Pipeline da campanha (outro projeto): Outubro/26 do ranking da campanha está subestimado (só um dos exports diários é usado). Aguardando autorização para corrigir. A Produção geral do BI já junta todos os downloads.
+4. Subpastas novas que eventualmente surgirem no Drive só entram no BI se forem pedidas (ex.: novas pastas dentro de Comissões).
+
+Resolvido: publicação online feita em 14/10/2026 (Render, ver abaixo).
 
 ## Publicação (web)
 

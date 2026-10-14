@@ -189,7 +189,8 @@ def gerar_dados(mensal_ok):
         raise RuntimeError(f"Resultado suspeito ({len(dados['franqueados'])} franqueados contra {antes} antes) — mantida a versão anterior.")
     st = ler_status()
     marca = agora().isoformat(timespec="minutes")
-    dados["atualizado"] = {"diario": marca, "mensal": marca if mensal_ok else st.get("mensal_em") or marca}
+    # mensal sem leitura completa ainda: fica sem data (o painel mostra "—") até o primeiro mensal bem-sucedido
+    dados["atualizado"] = {"diario": marca, "mensal": marca if mensal_ok else st.get("mensal_em")}
     if os.path.exists(ARQ_DADOS):
         shutil.copy2(ARQ_DADOS, os.path.join(DATA_DIR, "bi_data.anterior.json"))  # cópia da última versão boa
     _gravar_json(ARQ_DADOS, dados)

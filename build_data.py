@@ -15,6 +15,7 @@ import os
 import re
 import unicodedata
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -29,6 +30,14 @@ PASTA_CAMPANHA = os.path.join(DRIVE_TI, "Arrancada de Vendas ")  # atenção: es
 PASTA_NAO_RENOVADAS = os.path.join(DRIVE_TI, "Apólices não renovadas")
 PASTA_CANCELADAS = os.path.join(DRIVE_TI, "Apólices Canceladas")
 PASTA_CONVERSAO = os.path.join(DRIVE_TI, "Cotação x Conversão")
+# horário de MS em todas as datas (o servidor roda em UTC; sem isso a "posição" aparecia 4 h adiantada)
+FUSO = ZoneInfo("America/Campo_Grande")
+
+
+def _quando_arquivo(caminho):
+    return datetime.fromtimestamp(os.path.getmtime(caminho), FUSO).isoformat(timespec="minutes")
+
+
 SAIDA = os.environ.get("BI_SAIDA") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "bi_data.json")
 
 
@@ -158,7 +167,7 @@ def carregar_campanha():
                 "pontos": int(r["Pontos"] or 0),
             }
     meses = [m for m, _ in abas if m != "Geral"]
-    return por_franq, meses, datetime.fromtimestamp(os.path.getmtime(caminho)).isoformat(timespec="minutes")
+    return por_franq, meses, _quando_arquivo(caminho)
 
 
 def ranking_periodo(campanha, meses):
@@ -317,7 +326,7 @@ def carregar_nao_renovadas():
             "data": termino.isoformat() if termino else None,
             "premio": num(r[cols["PREMIO LIQUIDO"]]) or 0,
         })
-    return out, datetime.fromtimestamp(os.path.getmtime(f)).isoformat(timespec="minutes")
+    return out, _quando_arquivo(f)
 
 
 def carregar_canceladas():
@@ -345,7 +354,7 @@ def carregar_canceladas():
             "data": canc.isoformat() if canc else None,
             "premio": num(r[cols["PREMIO LIQUIDO"]]) or 0,
         })
-    return out, datetime.fromtimestamp(os.path.getmtime(f)).isoformat(timespec="minutes")
+    return out, _quando_arquivo(f)
 
 
 def resumo_apolices(lista):
@@ -448,7 +457,7 @@ def carregar_repasses(pasta, rotulo):
     df["_F"] = df[cols["UNIDADE DE NEGOCIO"]].apply(canonico)
     df["_V"] = pd.to_numeric(df[cols["VALOR"]], errors="coerce").fillna(0)
     tot = df[df["_F"].notna()].groupby("_F")["_V"].sum()
-    return {k: round(float(v), 2) for k, v in tot.items()}, datetime.fromtimestamp(os.path.getmtime(f)).isoformat(timespec="minutes")
+    return {k: round(float(v), 2) for k, v in tot.items()}, _quando_arquivo(f)
 
 
 TIPO_NEGOCIO = {  # coluna NEGÓCIO do RptRepassesPagos (Quiver)
@@ -593,7 +602,7 @@ def carregar_producao_geral(cw):
                 continue
             mes = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(nome)), None)
             if mes is None:
-                quando = datetime.fromtimestamp(os.path.getmtime(f))
+                quando = datetime.fromtimestamp(os.path.getmtime(f), FUSO)
                 if quando.year != 2000 + int(ano):
                     continue
                 mes = quando.month
@@ -756,7 +765,7 @@ def main():
         }
 
     saida = {
-        "gerado_em": datetime.now().isoformat(timespec="minutes"),
+        "gerado_em": datetime.now(FUSO).isoformat(timespec="minutes"),
         "meta_minima_campanha": META_MINIMA,
         "meses_campanha": meses_campanha,
         "trimestres_campanha": trimestres,

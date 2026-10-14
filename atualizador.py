@@ -2,8 +2,8 @@
 
 - Espelha as pastas do Drive (Piaseg Franchising/TI) num disco local, com a mesma estrutura e as datas
   de modificação do Drive (algumas regras usam a data do arquivo, ex.: downloads diários de produção).
-- Diário (10h, horário de MS): pasta da campanha -> temas Campanha e Produção geral.
-- Mensal (dia 05): também Cotação x Conversão, Não renovadas, Canceladas, Comissões e Sinistros.
+- Diário (10h, horário de MS): TODAS as pastas, todos os temas (pedido de 2026-10-14; antes os temas
+  Cotação x Conversão, Não renovadas, Canceladas, Comissões e Sinistros eram só no dia 05).
 - Roda o build_data.py num processo separado e só troca os dados no ar se o resultado for válido:
   em caso de erro, o portal continua com a última versão boa (nada se perde).
 """
@@ -26,7 +26,6 @@ ARQ_DADOS = os.path.join(DATA_DIR, "bi_data.json")
 ARQ_STATUS = os.path.join(DATA_DIR, "status.json")
 FUSO = ZoneInfo("America/Campo_Grande")
 HORA_DIARIA = 10
-DIA_MENSAL = 5
 
 PASTAS_DIARIAS = ["Arrancada de Vendas "]  # atenção: o nome real tem espaço no final
 PASTAS_MENSAIS = ["Cotação x Conversão", "Apólices não renovadas", "Apólices Canceladas", "Comissões", "Sinistros"]
@@ -254,8 +253,8 @@ def atualizar(modo):
 # ------------------------------------------------------------------ agenda
 
 def _laco():
-    """Confere a cada minuto. Diário às 10h; se a planilha da campanha ainda não for a do dia,
-    tenta de novo a cada 15 min até as 12h. Dia 05: atualização mensal (todas as pastas)."""
+    """Confere a cada minuto. Às 10h atualiza todos os temas (todas as pastas); se a planilha da campanha
+    ainda não for a do dia, ou se alguma pasta não pôde ser lida, tenta de novo a cada 15 min até as 12h."""
     while True:
         try:
             st, t = ler_status(), agora()
@@ -266,16 +265,12 @@ def _laco():
                 if pode_tentar:                           # primeira subida: carrega tudo
                     _status(ultima_tentativa=t.isoformat(timespec="minutes"))
                     atualizar("mensal")
-            elif t.hour >= HORA_DIARIA:
-                # mensal: a partir do dia 05 (se o servidor estiver fora no dia 05, roda no primeiro dia em que voltar)
-                mensal_pendente = t.day >= DIA_MENSAL and (st.get("mensal_em") or "")[:7] != t.strftime("%Y-%m")
+            elif t.hour >= HORA_DIARIA and pode_tentar:
                 feito_hoje = (st.get("diario_em") or "")[:10] == hoje
-                if mensal_pendente and pode_tentar:
+                completo_hoje = (st.get("mensal_em") or "")[:10] == hoje   # todas as pastas lidas hoje
+                if not feito_hoje or (t.hour < 12 and (not st.get("campanha_do_dia") or not completo_hoje)):
                     _status(ultima_tentativa=t.isoformat(timespec="minutes"))
                     atualizar("mensal")
-                elif pode_tentar and (not feito_hoje or (not st.get("campanha_do_dia") and t.hour < 12)):
-                    _status(ultima_tentativa=t.isoformat(timespec="minutes"))
-                    atualizar("diario")
         except Exception as e:
             _status(erro=f"agenda: {e}")
         time.sleep(60)

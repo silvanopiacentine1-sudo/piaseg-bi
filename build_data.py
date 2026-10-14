@@ -712,7 +712,7 @@ def gerar_treinamento(base):
     return {"nome": "TREINAMENTO (exemplo fictício)", "ficticio": True, "campanha": campanha,
             "nao_renovadas": apolices(40, "termino"), "canceladas": apolices(12, "cancelamento"),
             "conversao": conversao, "rede_conversao": rede, "comissoes": comissoes, "sinistros": sinistros, "producao": producao,
-            "comissoes_a_receber": v(18000, 32000), "comissoes_liberadas": v(4000, 9000), "media_rede_repasses": {"a_receber": v(20000, 30000), "liberados": v(3000, 7000)}}
+            "comissoes_a_receber": v(18000, 32000), "comissoes_liberadas": v(4000, 9000)}
 
 
 # ------------------------------------------------------------------ main

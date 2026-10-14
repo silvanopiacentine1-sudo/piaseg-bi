@@ -9,6 +9,7 @@ Web:    PORT, DATA_DIR, SECRET_KEY, BI_VINCULOS_JSON, GOOGLE_SERVICE_ACCOUNT_JSO
 """
 
 import base64
+import sqlite3
 import hashlib
 import hmac
 import json
@@ -36,8 +37,9 @@ SECRET_KEY = (os.environ.get("SECRET_KEY") or secrets.token_hex(32)).encode()
 SESSAO_HORAS = 12
 TODOS = "__TODOS__"
 TREINAMENTO = "__TREINAMENTO__"  # unidade fictícia p/ ensinar; liberada a qualquer login, nunca somada às reais
+# media_rede_repasses NÃO vai para o franqueado (pedido de 2026-10-14: ele compara só com a própria média)
 COMUM = ("gerado_em", "atualizado", "fontes", "meta_minima_campanha", "meses_campanha", "trimestres_campanha",
-         "posicao_repasses", "media_rede_repasses")
+         "posicao_repasses")
 
 app = FastAPI(title="BI Piaseg", docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -94,7 +96,8 @@ def _b64(b):
 
 
 def criar_token(usuario, nome):
-    corpo = _b64(json.dumps({"u": usuario, "n": nome, "exp": int(time.time()) + SESSAO_HORAS * 3600}).encode())
+    sid = secrets.token_hex(8)  # identifica a sessão no registro de acessos
+    corpo = _b64(json.dumps({"u": usuario, "n": nome, "s": sid, "exp": int(time.time()) + SESSAO_HORAS * 3600}).encode())
     return corpo + "." + _b64(hmac.new(SECRET_KEY, corpo.encode(), hashlib.sha256).digest())
 
 
@@ -108,7 +111,48 @@ def sessao(authorization: str):
             raise ValueError
     except Exception:
         raise HTTPException(401, "Sessão expirada. Faça login novamente.")
-    return perfil(d["u"], d["n"])
+    p = perfil(d["u"], d["n"])
+    p["_sid"] = d.get("s") or ""
+    return p
+
+
+# ------------------------------------------------------------------ registro de acessos (entrada / saída)
+
+ARQ_ACESSOS = os.path.join(atualizador.DATA_DIR, "acessos.db")
+INATIVO_MIN = 30   # sem sinal por mais que isso = a visita terminou; o próximo sinal abre uma visita nova
+_acessos_trava = threading.Lock()
+
+
+def _db():
+    os.makedirs(os.path.dirname(ARQ_ACESSOS), exist_ok=True)
+    con = sqlite3.connect(ARQ_ACESSOS, timeout=10)
+    con.execute("""create table if not exists visitas (id integer primary key autoincrement, sid text, usuario text, nome text,
+                   unidades text, entrada text, ultimo text, saida text)""")
+    con.execute("create index if not exists ix_visitas_sid on visitas(sid)")
+    return con
+
+
+def _agora_iso():
+    return atualizador.agora().isoformat(timespec="seconds")
+
+
+def registrar_sinal(p, sair=False):
+    """Abre a visita na entrada, renova a cada sinal da página e fecha no "Sair" (ou pelo último sinal)."""
+    if not p.get("_sid"):
+        return
+    unidades = "Gestor" if p["admin"] else "; ".join(p["franqueados"])
+    agora = _agora_iso()
+    limite = (atualizador.agora() - atualizador.timedelta(minutes=INATIVO_MIN)).isoformat(timespec="seconds")
+    with _acessos_trava, _db() as con:
+        v = con.execute("select id from visitas where sid=? and saida is null and ultimo>=? order by id desc limit 1",
+                        (p["_sid"], limite)).fetchone()
+        if v:
+            con.execute("update visitas set ultimo=?" + (", saida=?" if sair else "") + " where id=?",
+                        (agora, agora, v[0]) if sair else (agora, v[0]))
+        elif not sair:
+            con.execute("insert into visitas (sid, usuario, nome, unidades, entrada, ultimo) values (?,?,?,?,?,?)",
+                        (p["_sid"], p["usuario"], p["nome"], unidades, agora, agora))
+        con.execute("delete from visitas where entrada < ?", ((atualizador.agora() - atualizador.timedelta(days=400)).isoformat(),))
 
 
 # limite de tentativas de senha: 8 erros em 15 min por IP (e por usuário) bloqueiam por 15 min
@@ -155,6 +199,7 @@ def login(d: LoginIn, request: Request):
 @app.get("/api/me")
 def me(authorization: str = Header(default="")):
     p = sessao(authorization)
+    p.pop("_sid", None)
     p["opcao_treinamento"] = TREINAMENTO
     if p["admin"]:
         p["todos"] = sorted(dados()["franqueados"])
@@ -202,6 +247,32 @@ def atualizar_agora(d: AtualizarIn, authorization: str = Header(default="")):
     modo = "diario" if d.modo == "diario" else "mensal"
     threading.Thread(target=atualizador.atualizar, args=(modo,), daemon=True).start()
     return {"ok": True, "mensagem": "Atualização iniciada. Leva alguns minutos."}
+
+
+@app.post("/api/acesso/sinal")
+def sinal(authorization: str = Header(default="")):
+    registrar_sinal(sessao(authorization))
+    return {"ok": True}
+
+
+@app.post("/api/acesso/sair")
+def sair(authorization: str = Header(default="")):
+    registrar_sinal(sessao(authorization), sair=True)
+    return {"ok": True}
+
+
+@app.get("/api/admin/acessos")
+def acessos(dias: int = 90, authorization: str = Header(default="")):
+    p = sessao(authorization)
+    if not p["admin"]:
+        raise HTTPException(403, "Exclusivo do gestor.")
+    desde = (atualizador.agora() - atualizador.timedelta(days=max(1, min(dias, 400)))).isoformat()
+    with _db() as con:
+        linhas = con.execute("select usuario, nome, unidades, entrada, coalesce(saida, ultimo), saida is not null "
+                             "from visitas where entrada >= ? order by entrada desc", (desde,)).fetchall()
+    visitas = [{"usuario": u, "nome": n, "unidades": un, "entrada": e, "saida": s, "saiu_pelo_botao": bool(b)}
+               for u, n, un, e, s, b in linhas]
+    return {"visitas": visitas, "unidades": sorted(carregar_vinculos()["vinculos"]), "dias": dias}
 
 
 @app.get("/saude")

@@ -147,6 +147,7 @@ tr.total td{font-weight:600;background:#fafafa;position:sticky;bottom:0;box-shad
         </div>
         <div class="dir">
           <select id="sel-franq" aria-label="Unidade"></select>
+          <button class="sair hidden" id="btn-acessos" title="Registro de acessos dos franqueados">Acessos</button>
           <button class="sair hidden" id="btn-atualizar" title="Status e atualização manual dos dados">⟳ Atualizar dados</button>
           <span id="nome-user" class="sub"></span>
           <button class="sair" id="btn-sair">Sair</button>
@@ -208,6 +209,8 @@ document.getElementById("form-login").addEventListener("submit", async e => {
 });
 
 function sair() {
+  if (TOKEN) fetch("/api/acesso/sair", {method: "POST", keepalive: true, headers: {Authorization: "Bearer " + TOKEN}}).catch(() => {});
+  clearInterval(_timerSinal);
   TOKEN = ""; sessionStorage.removeItem("bi_token");
   document.getElementById("app").classList.add("hidden");
   document.getElementById("login").classList.remove("hidden");
@@ -222,6 +225,10 @@ async function iniciar() {
   const btnAt = document.getElementById("btn-atualizar");
   btnAt.classList.toggle("hidden", !PERFIL.admin);
   btnAt.onclick = atualizarManual;
+  const btnAc = document.getElementById("btn-acessos");
+  btnAc.classList.toggle("hidden", !PERFIL.admin);
+  btnAc.onclick = () => { ABA = "acessos"; history.replaceState(null, "", "#acessos"); abaAcessos(); };
+  iniciarSinais();
   const lista = PERFIL.admin ? PERFIL.todos : PERFIL.franqueados;
   const sel = document.getElementById("sel-franq");
   const opcoes = (PERFIL.opcao_todos ? [[PERFIL.opcao_todos, "TODOS — visão da rede"]] : [])
@@ -232,7 +239,7 @@ async function iniciar() {
   let ini = sessionStorage.getItem("bi_franq");
   if (!opcoes.some(([v]) => v === ini)) ini = (opcoes.find(([v]) => v !== PERFIL.opcao_treinamento) || opcoes[0])[0];
   sel.value = ini;
-  sel.onchange = () => { sessionStorage.setItem("bi_franq", sel.value); carregar(sel.value); };
+  sel.onchange = () => { sessionStorage.setItem("bi_franq", sel.value); if (ABA === "acessos") ABA = "resumo"; carregar(sel.value); };
   carregar(ini);
 }
 
@@ -241,8 +248,8 @@ async function atualizarManual() {
   let st = {};
   try { st = await api("/api/admin/status"); } catch (e) { return alert(e.message); }
   const q = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle: "short", timeStyle: "short"}) : "nunca";
-  const txt = [`Última atualização diária (Campanha e Produção geral): ${q(st.diario_em)}`,
-               `Última atualização mensal (demais temas): ${q(st.mensal_em)}`,
+  const txt = [`Última atualização (todos os temas, automática todo dia às 10h): ${q(st.diario_em)}`,
+               st.mensal_em && st.mensal_em !== st.diario_em ? `Última leitura completa de todas as pastas: ${q(st.mensal_em)}` : "",
                st.rodando ? `\nATUALIZAÇÃO EM ANDAMENTO (${st.rodando}) desde ${q(st.inicio)}.` : "",
                st.erro ? `\nÚltimo erro: ${st.erro}` : "",
                (st.avisos || []).length ? `\nAvisos:\n- ${st.avisos.join("\n- ")}` : "",
@@ -377,7 +384,7 @@ const ymCampanha = nome => ymDe(MESES_LONGOS.indexOf(nome) + 1);
 const nomeMes = ym => MESES_LONGOS[+ym.split("-")[1] - 1] + "/" + ym.split("-")[0];
 const COR_CANCELADAS = "#c1121f";  // vermelho sangue
 const ABAS = ["resumo", "campanha", "producao", "conversao", "naorenovadas", "canceladas", "comissoes", "sinistros"];
-let ABA = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "resumo";
+let ABA = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "resumo";  // "acessos" só pelo botão do gestor
 let MES = {};  // filtro de mês escolhido em cada aba ("" = período todo)
 
 function render() {
@@ -398,16 +405,15 @@ function ligarAbas() {
 
 function renderAba() {
   document.querySelectorAll("nav.abas a").forEach(l => l.classList.toggle("ativo", l.getAttribute("href") === "#" + ABA));
-  // Campanha e Produção geral: atualização diária (10h). Demais temas: mensal (dia 05).
+  // todos os temas são atualizados diariamente às 10h (desde 14/10/2026)
+  if (ABA === "acessos") return abaAcessos();
   const quando = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"}) : "—";
-  const at = D.atualizado || {diario: D.gerado_em, mensal: D.gerado_em};
-  const atual = ABA === "resumo" ? `${quando(at.diario)} (Campanha e Produção geral) · ${quando(at.mensal)} (demais temas)`
-              : ["campanha", "producao"].includes(ABA) ? quando(at.diario) : quando(at.mensal);
+  const atual = quando((D.atualizado || {}).diario || D.gerado_em);
   const corpo = {resumo: abaResumo, campanha: abaCampanha, producao: abaProducao, conversao: abaConversao,
                  naorenovadas: () => abaApolices("naorenovadas"), canceladas: () => abaApolices("canceladas"), comissoes: abaComissoes, sinistros: abaSinistros}[ABA];
   const el = document.getElementById("conteudo");
   el.innerHTML = `<div class="unidade"><h2>${esc(D.nome)}</h2>${D.todos ? `<span class="pill" style="background:var(--gold);color:var(--navy)">${D.nomes.length} franqueados · visão do gestor</span>` : ""}${D.ficticio ? `<span class="pill" style="background:#fde2e1;color:#991b1b">DADOS FICTÍCIOS · uso exclusivo para treinamento — não representam nenhum franqueado</span>` : ""}<span class="atual">Dados atualizados em ${atual}</span></div><div id="aba"></div>
-    <div class="footer">BI Piaseg · versão de teste local</div>`;
+    <div class="footer">BI Piaseg</div>`;
   corpo();
   anexarTodos();
 }
@@ -735,32 +741,38 @@ function abaComissoes() {
   ligarSubtemas();
 }
 
-/* À receber / Repasses liberados: total do relatório mais recente, comparado à média da rede e à comissão mensal */
+/* À receber / Repasses liberados: total do relatório mais recente, comparado com a PRÓPRIA média mensal de comissões
+   recebidas nos últimos 12 meses (subtema Recebidas). O franqueado não vê média da rede (pedido de 2026-10-14). */
 function abaRepasses(sub) {
   const ar = sub === "areceber";
   const T = ar ? "Comissões — à receber" : "Comissões — repasses liberados";
   const valor = ar ? D.comissoes_a_receber : D.comissoes_liberadas;
   const pos = (D.posicao_repasses || {})[ar ? "a_receber" : "liberados"];
-  const media = (D.media_rede_repasses || {})[ar ? "a_receber" : "liberados"];
   const quando = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle: "short", timeStyle: "short"}) : "—";
   const nota = `Posição do relatório em ${quando(pos)} · ${ar ? "valores pendentes de repasse (relatório Repasses Pendentes)" : "valores já liberados para repasse (relatório Repasses Liberados)"}`;
   if (valor == null && !D.todos) {
     document.getElementById("aba").innerHTML = `<section>${titulo(T, nota)}${barraSubtemas()}<div class="card vazio">Não há valores ${ar ? "a receber" : "liberados"} para esta unidade no último relatório.</div></section>`;
     return ligarSubtemas();
   }
-  // comissão média mensal recebida em 2026 (subtema Recebidas), para dar a dimensão do valor
-  const c26 = (D.comissoes || []).filter(r => r.ano === ANO), meses26 = new Set(c26.map(r => r.mes)).size;
+  // média mensal real dos últimos 12 meses de comissões recebidas (12 meses corridos até o último mês com repasse)
+  const rows = D.comissoes || [], chave = r => r.ano * 12 + (r.mes - 1);
+  const ultimo = rows.length ? Math.max(...rows.map(chave)) : null;
+  const doze = ultimo == null ? [] : rows.filter(r => chave(r) > ultimo - 12);
+  const total12 = doze.reduce((a, r) => a + r.valor, 0), media12 = ultimo == null ? 0 : total12 / 12;
+  const rotMes = k => `${MES_CURTO[k % 12]}/${String(Math.floor(k / 12)).slice(2)}`;
+  const janela = ultimo == null ? "" : `${rotMes(ultimo - 11)} a ${rotMes(ultimo)}`;
+  const quem = D.todos ? "da rede" : "sua";
   const n = D.todos ? D.nomes.filter(f => (D.membros[f][ar ? "comissoes_a_receber" : "comissoes_liberadas"]) != null).length : 1;
-  const mensalUnidade = meses26 ? c26.reduce((a, r) => a + r.valor, 0) / meses26 : 0;  // comissão média por mês em 2026
-  const equivale = mensalUnidade > 0 && valor ? (valor / mensalUnidade).toLocaleString("pt-BR", {maximumFractionDigits: 1}) : null;
-  const comp = !D.todos && media ? (valor >= media ? `<span class="ind ind-up">▲ acima da média</span>` : `<span class="ind ind-down">▼ abaixo da média</span>`) : "";
+  const equivale = media12 > 0 && valor ? (valor / media12).toLocaleString("pt-BR", {maximumFractionDigits: 1}) : null;
+  const comp = !ar && media12 > 0 && valor != null ? (valor >= media12 ? `<span class="ind ind-up">▲ acima da ${quem} média</span>` : `<span class="ind ind-down">▼ abaixo da ${quem} média</span>`) : "";
   document.getElementById("aba").innerHTML = `<section>
     ${titulo(T, nota)}
     ${barraSubtemas()}
     <div class="grid g3">
-      ${kpi(D.todos ? `Total ${ar ? "a receber" : "liberado"} na rede` : `Total ${ar ? "a receber" : "liberado"}`, brl0(valor || 0), D.todos ? `${int(n)} franqueados com valor` : "", true)}
-      ${kpi("Média por franqueado na rede", media ? brl0(media) : "—", comp)}
-      ${kpi("Equivale a", equivale ? `${equivale} ${equivale === "1" ? "mês" : "meses"}` : "—", `da comissão média mensal recebida em ${ANO}${D.todos ? " pela rede" : ""}`)}
+      ${kpi(`Total ${ar ? "a receber (nos próximos 12 meses)" : "liberado"}${D.todos ? " na rede" : ""}`, brl0(valor || 0), D.todos ? `${int(n)} franqueados com valor` : "", true)}
+      ${kpi(D.todos ? "Média mensal da rede (últimos 12 meses)" : "Sua média mensal (últimos 12 meses)", media12 ? brl0(media12) : "—",
+            media12 ? `${comp ? comp + "<br>" : ""}comissões recebidas de ${janela}: ${brl0(total12)}` : "sem comissões recebidas nos últimos 12 meses")}
+      ${kpi("Equivale a", equivale ? `${equivale} ${equivale === "1" ? "mês" : "meses"}` : "—", `da ${quem} comissão média mensal dos últimos 12 meses`)}
     </div>
   </section>`;
   ligarSubtemas();
@@ -1250,6 +1262,71 @@ function anexarResumoTodos() {
   document.querySelectorAll("#tb-geral th").forEach(th => { th.style.cursor = "pointer"; th.onclick = () => {
     const k = th.dataset.k; asc = ord === k ? !asc : (k === "f" || k === "pos"); ord = k; desenhar(); }; });
   desenhar();
+}
+
+/* ---------------------------------------------------------------- registro de acessos (só gestor) */
+
+let FILTRO_ACESSO = {unidade: "", dias: 30};
+
+async function abaAcessos() {
+  document.querySelectorAll("nav.abas a").forEach(l => l.classList.remove("ativo"));
+  const el = document.getElementById("conteudo");
+  el.innerHTML = `<div class="vazio">Carregando acessos…</div>`;
+  let r;
+  try { r = await api(`/api/admin/acessos?dias=${FILTRO_ACESSO.dias}`); }
+  catch (e) { el.innerHTML = `<div class="vazio">${esc(e.message)}</div>`; return; }
+  const data = iso => new Date(iso).toLocaleDateString("pt-BR", {day: "2-digit", month: "2-digit", year: "2-digit"});
+  const hora = iso => new Date(iso).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+  const dur = (a, b) => { const m = Math.max(1, Math.round((new Date(b) - new Date(a)) / 60000)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; };
+  const unidadesDe = v => v.unidades.split("; ").filter(Boolean);
+  const todasUnidades = ["Gestor", ...r.unidades];
+  const visitas = r.visitas.filter(v => !FILTRO_ACESSO.unidade || unidadesDe(v).includes(FILTRO_ACESSO.unidade));
+
+  // resumo por unidade: quem acessou e quem não acessou no período
+  const resumo = r.unidades.map(u => {
+    const vs = r.visitas.filter(v => unidadesDe(v).includes(u));
+    const minutos = vs.reduce((a, v) => a + Math.max(1, Math.round((new Date(v.saida) - new Date(v.entrada)) / 60000)), 0);
+    return {u, n: vs.length, ultimo: vs[0] ? vs[0].entrada : null, minutos};
+  }).sort((a, b) => (b.ultimo || "").localeCompare(a.ultimo || "") || a.u.localeCompare(b.u));
+  const semAcesso = resumo.filter(x => !x.n).length;
+
+  el.innerHTML = `<div class="unidade"><h2>Registro de acessos</h2><span class="pill" style="background:var(--gold);color:var(--navy)">visão do gestor</span></div>
+  <section>
+    <div class="sec-tit"><span class="barra"></span><h3>Quem está usando o BI</h3>
+      <div class="filtro"><label for="f-uni">Unidade</label><select id="f-uni"><option value="">Todas as unidades</option>
+        ${todasUnidades.map(u => `<option ${u === FILTRO_ACESSO.unidade ? "selected" : ""}>${esc(u)}</option>`).join("")}</select>
+        <label for="f-dias">Período</label><select id="f-dias">${[7, 30, 90, 365].map(d => `<option value="${d}" ${d === FILTRO_ACESSO.dias ? "selected" : ""}>últimos ${d} dias</option>`).join("")}</select></div>
+      <span class="nota">Entrada = login (ou retorno à página depois de ${30} min sem uso). Saída = clique em "Sair" ou, se a página foi apenas fechada, o último sinal dela (precisão de cerca de 2 min).</span></div>
+    ${FILTRO_ACESSO.unidade ? "" : `<div class="grid g3" style="margin-bottom:14px">
+      ${kpi("Acessos no período", int(r.visitas.length), `últimos ${FILTRO_ACESSO.dias} dias`, true)}
+      ${kpi("Unidades que acessaram", `${int(resumo.length - semAcesso)} de ${int(resumo.length)}`, "unidades com login vinculado")}
+      ${kpi("Unidades sem acesso", int(semAcesso), semAcesso ? "veja a lista abaixo" : "todas acessaram")}
+    </div>
+    <div class="card" style="margin-bottom:14px"><h4>Por unidade <small>— últimos ${FILTRO_ACESSO.dias} dias</small></h4><div class="tbl-wrap" style="max-height:360px"><table>
+      <thead><tr><th>Unidade</th><th class="n">Último acesso</th><th class="n">Acessos</th><th class="n">Tempo total</th></tr></thead><tbody>
+      ${resumo.map(x => `<tr><td>${esc(x.u)}</td><td class="n">${x.ultimo ? `${data(x.ultimo)} ${hora(x.ultimo)}` : `<span class="ind ind-down">nunca acessou</span>`}</td>
+        <td class="n">${int(x.n)}</td><td class="n">${x.n ? (x.minutos < 60 ? x.minutos + " min" : Math.floor(x.minutos / 60) + " h " + String(x.minutos % 60).padStart(2, "0") + " min") : "—"}</td></tr>`).join("")}
+      </tbody></table></div></div>`}
+    <div class="card"><h4>Acessos${FILTRO_ACESSO.unidade ? " — " + esc(FILTRO_ACESSO.unidade) : ""} <small>— ${int(visitas.length)} no período</small></h4>
+      <div class="tbl-wrap" style="max-height:520px"><table><thead><tr><th>Data</th><th>Usuário</th><th>Unidade</th><th class="n">Entrada</th><th class="n">Saída</th><th class="n">Duração</th></tr></thead><tbody>
+      ${visitas.map(v => `<tr><td>${data(v.entrada)}</td><td>${esc(v.nome)}<div class="qtd">${esc(v.usuario)}</div></td><td>${esc(v.unidades || "—")}</td>
+        <td class="n">${hora(v.entrada)}</td><td class="n">${hora(v.saida)}${v.saiu_pelo_botao ? "" : `<div class="qtd">último sinal</div>`}</td><td class="n">${dur(v.entrada, v.saida)}</td></tr>`).join("")
+        || `<tr><td colspan="6" class="vazio">Nenhum acesso no período.</td></tr>`}
+      </tbody></table></div></div>
+  </section>
+  <div class="footer">BI Piaseg</div>`;
+  document.getElementById("f-uni").onchange = e => { FILTRO_ACESSO.unidade = e.target.value; abaAcessos(); };
+  document.getElementById("f-dias").onchange = e => { FILTRO_ACESSO.dias = +e.target.value; abaAcessos(); };
+}
+
+/* sinal de presença: na entrada e a cada 2 min com a página visível (é o que define a hora de saída) */
+let _timerSinal = null;
+function iniciarSinais() {
+  const sinal = () => { if (TOKEN && document.visibilityState === "visible") api("/api/acesso/sinal", {method: "POST"}).catch(() => {}); };
+  sinal();
+  clearInterval(_timerSinal);
+  _timerSinal = setInterval(sinal, 120000);
+  document.addEventListener("visibilitychange", sinal);
 }
 
 /* ---------------------------------------------------------------- apólices */

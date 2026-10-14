@@ -532,6 +532,8 @@ def _padroniza_producao(df, cw):
         "PREMIO": pd.to_numeric(df[cols["PREMIO"]], errors="coerce").fillna(0),
         "RAMO": df[cols["RAMO"]].astype(str).str.strip() if "RAMO" in cols else "",
         "SEGURADORA": df[cols["SEGURADORA"]].astype(str).str.strip() if "SEGURADORA" in cols else "",
+        # entra só na chave da união sem duplicar (identifica o mesmo lançamento em downloads diferentes)
+        "INICIO": pd.to_datetime(df[cols["INICIO DE VIGENCIA"]], errors="coerce").dt.strftime("%Y-%m-%d") if "INICIO DE VIGENCIA" in cols else "",
     })
     if "DIVISAO" in cols:
         out["F"] = df[cols["DIVISAO"]].apply(canonico)
@@ -577,9 +579,11 @@ def carregar_producao_geral(cw):
                 continue
             por_mes.setdefault(mes, []).append(cru)
         for mes, dfs in por_mes.items():
-            cols = list(dfs[0].columns)
-            dfs = [d for d in dfs if list(d.columns) == cols] or dfs[:1]
-            brutos[(2000 + int(ano), mes)] = _padroniza_producao(dfs[0] if len(dfs) == 1 else _uniao_sem_duplicar(dfs), cw)
+            # padroniza as colunas de TODOS os arquivos antes de unir: o resultado não depende da ordem dos arquivos
+            pads = [_padroniza_producao(d, cw) for d in dfs]
+            for d in pads:
+                d["PREMIO"] = d["PREMIO"].round(2)
+            brutos[(2000 + int(ano), mes)] = pads[0] if len(pads) == 1 else _uniao_sem_duplicar(pads)
     for pasta in glob.glob(os.path.join(PASTA_CONVERSAO, "*")):
         m = re.match(r"(\d+)\s*-", os.path.basename(pasta))
         if not m or (2026, int(m[1])) in brutos or not os.path.isdir(pasta):

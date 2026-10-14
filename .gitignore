@@ -1,0 +1,6 @@
+data/
+__pycache__/
+*.pyc
+.DS_Store
+# e-mails dos franqueados: no servidor vão na variável BI_VINCULOS_JSON, nunca no GitHub
+vinculos.json

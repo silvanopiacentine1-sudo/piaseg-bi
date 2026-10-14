@@ -1,0 +1,1251 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BI Piaseg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Playfair+Display&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#072a3c;--navy-2:#0e3d55;--gold:#c2a360;--gold-2:#a8884a;--off:#f6f6f6;
+  --bg:#f3f4f6;--card:#fff;--ink:#1f2937;--ink-2:#4b5563;--muted:#6b7280;--line:#e5e7eb;--grid:#eef0f3;
+  --good:#1a7f4b;--bad:#b42318;--s2025:#9db4c3;--verde-claro:#a3d9a5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Jost,Arial,Helvetica,sans-serif;font-size:15px}
+h1,h2,h3{margin:0}
+.display{font-family:"Cinzel Decorative",serif}
+button,select,input{font:inherit}
+.hidden{display:none!important}
+
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:16px}
+.login-box{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.login-box img{height:56px;display:block;margin:0 auto 8px;filter:brightness(0) saturate(100%) invert(12%) sepia(30%) saturate(1800%) hue-rotate(170deg)}
+.login-box h1{text-align:center;color:var(--gold-2);font-size:26px;margin-bottom:4px;font-family:"Playfair Display",serif;font-weight:400}
+.login-box p{text-align:center;color:var(--muted);margin:0 0 20px;font-size:14px}
+label{display:block;font-size:13px;color:var(--ink-2);margin:12px 0 4px}
+input[type=text],input[type=password],input[type=search]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--navy-2)}
+.btn-full{width:100%;margin-top:20px}
+.erro{color:var(--bad);font-size:14px;margin-top:12px;min-height:1em;text-align:center}
+
+/* header */
+header{background:var(--navy);color:#fff}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px}
+.hdr{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 0}
+.hdr img{height:40px}
+.hdr .titulo{font-family:"Playfair Display",serif;color:var(--gold);font-size:22px}
+.hdr .sub{color:rgba(255,255,255,.7);font-size:13px}
+.hdr .dir{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr select{background:var(--navy-2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 8px;max-width:260px}
+.hdr .sair{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+nav.abas{display:flex;gap:4px;overflow-x:auto;padding-bottom:0}
+nav.abas a{color:rgba(255,255,255,.75);text-decoration:none;padding:10px 14px;border-bottom:3px solid transparent;white-space:nowrap;font-size:14px}
+nav.abas a:hover{color:#fff}
+nav.abas a.ativo{color:#fff;border-bottom-color:var(--gold)}
+
+main{padding:20px 0 48px}
+.unidade{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.unidade h2{font-size:24px;color:var(--navy)}
+.unidade .atual{color:var(--muted);font-size:13px}
+section{margin-bottom:28px;scroll-margin-top:16px}
+.sec-tit{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.sec-tit h3{font-size:19px;color:var(--navy)}
+.sec-tit .barra{width:4px;height:22px;background:var(--gold);border-radius:2px}
+.sec-tit .nota{color:var(--muted);font-size:13px;margin-left:auto}
+.card{background:var(--card);border-radius:14px;border:1px solid var(--line);padding:18px}
+.grid{display:grid;gap:14px}
+.g5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+@media (max-width:420px){.g2{grid-template-columns:1fr}}
+.kpi .rot{font-size:13px;color:var(--muted)}
+.kpi .val{font-size:28px;font-weight:600;color:var(--navy);margin-top:4px;line-height:1.1}
+.kpi .det{font-size:13px;color:var(--ink-2);margin-top:6px}
+.up{color:var(--good)} .down{color:var(--bad)}
+.hero{background:var(--navy);color:#fff;border:0;display:flex;flex-direction:column;justify-content:center}
+.hero .rot{color:rgba(255,255,255,.75)}
+.hero .val{color:var(--gold);font-size:31px;white-space:nowrap}
+.hero .det{color:rgba(255,255,255,.8)}
+.card h4{margin:0 0 10px;font-size:15px;color:var(--ink);font-weight:600}
+.card h4 small{color:var(--muted);font-weight:400}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;color:var(--ink-2);border-bottom:2px solid var(--line);padding:8px 6px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:7px 6px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{font-weight:600;background:#fafafa;position:sticky;bottom:0;box-shadow:0 -1px 0 var(--line)}
+.tbl-wrap{overflow-x:auto;max-height:420px;overflow-y:auto}
+.tbl-wrap thead th{position:sticky;top:0;background:#fff}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600}
+.p5{background:#d6f0e0;color:#14532d}.p3{background:#e8f3d8;color:#3f6212}.p1{background:#fdf3cf;color:#854d0e}.p0{background:#f3f4f6;color:#4b5563}
+.aviso{font-size:12px;color:var(--bad)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.toolbar select,.toolbar input{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.toolbar input{max-width:260px}
+.link{color:var(--navy);font-weight:600}
+.vazio{color:var(--muted);padding:20px;text-align:center}
+
+/* charts */
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-bottom:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend i.ln{height:3px;border-radius:2px;vertical-align:3px}
+.legend i.dash{height:0;border-top:2px dashed var(--bad);border-radius:0;vertical-align:3px}
+.tip{position:absolute;pointer-events:none;background:#111827;color:#fff;font-size:12px;padding:7px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-8px;opacity:0;transition:opacity .1s;z-index:5}
+.tip b{font-weight:600}
+.axis text{fill:var(--muted);font-size:11px}
+.vlabel{fill:var(--ink-2);font-size:11px;font-weight:500}
+.filtro{display:flex;align-items:center;gap:8px;margin-left:auto}
+.filtro label{margin:0;font-size:13px;color:var(--ink-2);font-weight:600}
+.filtro select{padding:7px 10px;border:1px solid var(--gold);border-radius:8px;background:#fff;color:var(--navy);font-weight:600}
+.sec-tit{flex-wrap:wrap}
+.sec-tit .nota{margin-left:0;width:100%}
+.ind{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.ind-up{background:#d6f0e0;color:#14532d}.ind-down{background:#fde2e1;color:#991b1b}
+.ind-novo{background:#dbeafe;color:#1e3a8a}.ind-eq{background:#f3f4f6;color:#4b5563}
+.qtd{font-size:11px;color:var(--muted)}
+.pizzas{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:520px){.pizzas{grid-template-columns:1fr}}
+.pizza{display:flex;flex-direction:column;align-items:center;gap:6px}
+.pizza table{width:auto;font-size:13px}.pizza td{border:0;padding:2px 6px}
+.pizza i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form class="login-box" id="form-login">
+    <img src="/static/logo-piaseg-branco.png" alt="Piaseg">
+    <h1 class="display">BI Piaseg</h1>
+    <p>Use o mesmo acesso do Portal do Franqueado</p>
+    <label for="u">Usuário</label>
+    <input type="text" id="u" autocomplete="username" required>
+    <label for="s">Senha</label>
+    <input type="password" id="s" autocomplete="current-password" required>
+    <button class="btn btn-full" type="submit">Entrar</button>
+    <div class="erro" id="erro-login"></div>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="wrap">
+      <div class="hdr">
+        <img src="/static/logo-piaseg-branco.png" alt="Piaseg">
+        <div>
+          <div class="titulo">BI</div>
+          <div class="sub">Business Intelligence do Franqueado</div>
+        </div>
+        <div class="dir">
+          <select id="sel-franq" aria-label="Unidade"></select>
+          <button class="sair hidden" id="btn-atualizar" title="Status e atualização manual dos dados">⟳ Atualizar dados</button>
+          <span id="nome-user" class="sub"></span>
+          <button class="sair" id="btn-sair">Sair</button>
+        </div>
+      </div>
+      <nav class="abas">
+        <a href="#resumo" class="ativo">Resumo</a>
+        <a href="#campanha">Campanha</a>
+        <a href="#producao">Produção geral</a>
+        <a href="#conversao">Cotação x Conversão</a>
+        <a href="#naorenovadas">Não renovadas</a>
+        <a href="#canceladas">Canceladas</a>
+        <a href="#comissoes">Comissões</a>
+        <a href="#sinistros">Sinistros</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" id="conteudo"></main>
+</div>
+
+<script>
+const API = "";
+let TOKEN = sessionStorage.getItem("bi_token") || "";
+let PERFIL = null, D = null;
+
+// valores em R$ sempre inteiros e completos: só os centavos são cortados (sem arredondar, sem "mil"/"mi")
+const brl0 = v => { const n = Math.trunc(v ?? 0); return (n < 0 ? "-" : "") + Math.abs(n).toLocaleString("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0}); };
+const brl = brl0, kbrl = brl0;
+const fmtPts = v => (v ?? 0).toLocaleString("pt-BR");
+const eixo = v => Math.trunc(v).toLocaleString("pt-BR");
+const pct = (v, d=1) => v == null || !isFinite(v) ? "—" : (v*100).toLocaleString("pt-BR",{maximumFractionDigits:d}) + "%";
+const int = v => (v ?? 0).toLocaleString("pt-BR");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MES_CURTO = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const mesLabel = ym => { const [y,m] = ym.split("-"); return MES_CURTO[+m-1] + "/" + y.slice(2); };
+const dataBR = iso => iso ? iso.split("-").reverse().join("/") : "—";
+
+async function api(path, opts={}) {
+  const r = await fetch(API + path, {...opts, headers:{"Content-Type":"application/json", Authorization:"Bearer " + TOKEN, ...(opts.headers||{})}});
+  if (r.status === 401) { sair(); throw new Error("Sessão expirada"); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || "Erro " + r.status);
+  return j;
+}
+
+document.getElementById("form-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const erro = document.getElementById("erro-login");
+  erro.textContent = "Entrando…";
+  try {
+    const r = await fetch("/api/login", {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({usuario: u.value, senha: s.value})});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || "Falha no login");
+    TOKEN = j.token; sessionStorage.setItem("bi_token", TOKEN);
+    erro.textContent = ""; iniciar();
+  } catch (err) { erro.textContent = err.message; }
+});
+
+function sair() {
+  TOKEN = ""; sessionStorage.removeItem("bi_token");
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+}
+document.getElementById("btn-sair").onclick = sair;
+
+async function iniciar() {
+  PERFIL = await api("/api/me");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("nome-user").textContent = PERFIL.nome;
+  const btnAt = document.getElementById("btn-atualizar");
+  btnAt.classList.toggle("hidden", !PERFIL.admin);
+  btnAt.onclick = atualizarManual;
+  const lista = PERFIL.admin ? PERFIL.todos : PERFIL.franqueados;
+  const sel = document.getElementById("sel-franq");
+  const opcoes = (PERFIL.opcao_todos ? [[PERFIL.opcao_todos, "TODOS — visão da rede"]] : [])
+    .concat(PERFIL.opcao_treinamento ? [[PERFIL.opcao_treinamento, "TREINAMENTO — exemplo fictício"]] : [])
+    .concat(lista.map(f => [f, f]));
+  sel.innerHTML = opcoes.map(([v, r]) => `<option value="${esc(v)}">${esc(r)}</option>`).join("");
+  sel.classList.toggle("hidden", opcoes.length < 2);
+  let ini = sessionStorage.getItem("bi_franq");
+  if (!opcoes.some(([v]) => v === ini)) ini = (opcoes.find(([v]) => v !== PERFIL.opcao_treinamento) || opcoes[0])[0];
+  sel.value = ini;
+  sel.onchange = () => { sessionStorage.setItem("bi_franq", sel.value); carregar(sel.value); };
+  carregar(ini);
+}
+
+/* gestor: mostra o status das atualizações automáticas e permite forçar uma agora */
+async function atualizarManual() {
+  let st = {};
+  try { st = await api("/api/admin/status"); } catch (e) { return alert(e.message); }
+  const q = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle: "short", timeStyle: "short"}) : "nunca";
+  const txt = [`Última atualização diária (Campanha e Produção geral): ${q(st.diario_em)}`,
+               `Última atualização mensal (demais temas): ${q(st.mensal_em)}`,
+               st.rodando ? `\nATUALIZAÇÃO EM ANDAMENTO (${st.rodando}) desde ${q(st.inicio)}.` : "",
+               st.erro ? `\nÚltimo erro: ${st.erro}` : "",
+               (st.avisos || []).length ? `\nAvisos:\n- ${st.avisos.join("\n- ")}` : "",
+               "\nAtualizar TODOS os temas agora, buscando as pastas do Drive?"].filter(Boolean).join("\n");
+  if (st.rodando || !confirm(txt)) return;
+  try { const r = await api("/api/admin/atualizar", {method: "POST", body: JSON.stringify({modo: "mensal"})}); alert(r.mensagem); }
+  catch (e) { alert(e.message); }
+}
+
+async function carregar(f) {
+  const el = document.getElementById("conteudo");
+  el.innerHTML = `<div class="vazio">Carregando…</div>`;
+  try { D = await api("/api/painel?franqueado=" + encodeURIComponent(f)); if (D.todos) D = agregar(D); render(); }
+  catch (err) { el.innerHTML = `<div class="vazio">${esc(err.message)}</div>`; }
+}
+
+/* ---------------------------------------------------------------- charts */
+
+function tipHandlers(box) {
+  let tip = box.querySelector(".tip");
+  if (!tip) { tip = document.createElement("div"); tip.className = "tip"; box.appendChild(tip); }
+  return {
+    show(html, x, y) { tip.innerHTML = html; tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1; },
+    hide() { tip.style.opacity = 0; }
+  };
+}
+
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+}
+
+/* barras agrupadas: cats[], series[{nome, cor, valores[]}], opts {fmt, fmtEixo, linhaRef:{valor, rotulo}, tipExtra(i)} */
+function barras(box, cats, series, opts={}) {
+  const W = 640, H = 240, m = {t:18, r:8, b:26, l:56};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const all = series.flatMap(s => s.valores).concat(opts.linhaRef ? [opts.linhaRef.valor] : []);
+  let max = niceMax(Math.max(...all, 0) * 1.08);
+  if (opts.inteiro) max = Math.max(4, Math.ceil(max / 4) * 4);
+  const y = v => m.t + ih - (Math.max(v,0) / max) * ih;
+  const band = iw / cats.length, gap = 2;
+  const bw = Math.min(34, (band * 0.72 - gap * (series.length - 1)) / series.length);
+  const grupo = bw * series.length + gap * (series.length - 1);
+  const fmtE = opts.fmtEixo || (v => v.toLocaleString("pt-BR"));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let k = 0; k <= 4; k++) {
+    const v = max * k / 4, yy = y(v);
+    s += `<line x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>`;
+    s += `<g class="axis"><text x="${m.l-6}" y="${yy+4}" text-anchor="end">${fmtE(v)}</text></g>`;
+  }
+  cats.forEach((c, i) => {
+    const x0 = m.l + band * i + (band - grupo) / 2;
+    series.forEach((se, j) => {
+      const v = se.valores[i] || 0, x = x0 + j * (bw + gap), yy = y(v), h = m.t + ih - yy;
+      if (h > 0) {
+        const r = Math.min(4, bw/2, h);
+        const d = opts.destaque, op = d == null || (Array.isArray(d) ? d.includes(i) : d === i) ? 1 : 0.28;
+        s += `<path d="M${x},${m.t+ih} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+bw-r} Q${x+bw},${yy} ${x+bw},${yy+r} V${m.t+ih} Z" fill="${se.cor}" opacity="${op}"/>`;
+      }
+    });
+    s += `<g class="axis"><text x="${m.l + band*i + band/2}" y="${H-8}" text-anchor="middle">${esc(c)}</text></g>`;
+    s += `<rect class="hit" data-i="${i}" x="${m.l + band*i}" y="${m.t}" width="${band}" height="${ih}" fill="transparent"/>`;
+  });
+  if (opts.linhaRef) {
+    const yy = y(opts.linhaRef.valor);
+    s += `<line x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  }
+  s += `<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="#cbd5e1"/></svg>`;
+  const leg = series.map(se => `<span><i style="background:${se.cor}"></i>${esc(se.nome)}</span>`).join("")
+    + (opts.linhaRef ? `<span><i class="dash"></i>${esc(opts.linhaRef.rotulo)}</span>` : "");
+  box.innerHTML = `<div class="legend">${leg}</div><div class="chart">${s}</div>`;
+  const ch = box.querySelector(".chart"), t = tipHandlers(ch), svg = ch.querySelector("svg");
+  const fmt = opts.fmt || (v => v.toLocaleString("pt-BR"));
+  svg.querySelectorAll(".hit").forEach(r => {
+    r.addEventListener("mousemove", ev => {
+      const i = +r.dataset.i, rect = svg.getBoundingClientRect(), sc = rect.width / W;
+      const vmax = Math.max(...series.map(se => se.valores[i] || 0));
+      const html = `<b>${esc(cats[i])}</b><br>` + series.map(se => `${esc(se.nome)}: ${fmt(se.valores[i] || 0)}`).join("<br>")
+        + (opts.tipExtra ? "<br>" + opts.tipExtra(i) : "");
+      t.show(html, (m.l + band*i + band/2) * sc, y(vmax) * sc);
+      r.setAttribute("fill", "rgba(7,42,60,.05)");
+    });
+    r.addEventListener("mouseleave", () => { t.hide(); r.setAttribute("fill", "transparent"); });
+  });
+}
+
+/* linhas em % (mesmo eixo): series[{nome, cor, valores[] (0..1 ou null), tracejado}] */
+function linhas(box, cats, series) {
+  const W = 640, H = 220, m = {t:16, r:16, b:26, l:44};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const vals = series.flatMap(s => s.valores).filter(v => v != null);
+  const max = Math.min(niceMax(Math.max(...vals, 0.1) * 1.1), Math.max(1, niceMax(Math.max(...vals, 0.1) * 1.1)));
+  const x = i => m.l + (cats.length === 1 ? iw/2 : iw * i / (cats.length - 1));
+  const y = v => m.t + ih - (v / max) * ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for (let k = 0; k <= 4; k++) {
+    const v = max * k / 4;
+    s += `<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><g class="axis"><text x="${m.l-6}" y="${y(v)+4}" text-anchor="end">${pct(v,0)}</text></g>`;
+  }
+  cats.forEach((c, i) => s += `<g class="axis"><text x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(c)}</text></g>`);
+  series.forEach(se => {
+    const pts = se.valores.map((v, i) => v == null ? null : [x(i), y(v)]);
+    let d = "", pen = false;
+    pts.forEach(p => { if (!p) { pen = false; return; } d += (pen ? "L" : "M") + p[0] + "," + p[1]; pen = true; });
+    s += `<path d="${d}" fill="none" stroke="${se.cor}" stroke-width="2" ${se.tracejado ? 'stroke-dasharray="6 4"' : ""}/>`;
+    if (!se.tracejado) pts.forEach(p => p && (s += `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${se.cor}" stroke="#fff" stroke-width="2"/>`));
+  });
+  s += `<line class="cross" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="#94a3b8" stroke-width="1" opacity="0"/>`;
+  s += `<rect class="hitall" x="${m.l-10}" y="${m.t}" width="${iw+20}" height="${ih}" fill="transparent"/></svg>`;
+  const leg = series.map(se => `<span><i class="ln" style="background:${se.cor}${se.tracejado ? ";background:repeating-linear-gradient(90deg," + se.cor + " 0 5px,transparent 5px 8px)" : ""}"></i>${esc(se.nome)}</span>`).join("");
+  box.innerHTML = `<div class="legend">${leg}</div><div class="chart">${s}</div>`;
+  const ch = box.querySelector(".chart"), t = tipHandlers(ch), svg = ch.querySelector("svg"), cross = svg.querySelector(".cross");
+  const hit = svg.querySelector(".hitall");
+  hit.addEventListener("mousemove", ev => {
+    const rect = svg.getBoundingClientRect(), sc = rect.width / W, mx = (ev.clientX - rect.left) / sc;
+    let i = cats.length === 1 ? 0 : Math.round((mx - m.l) / (iw / (cats.length - 1)));
+    i = Math.max(0, Math.min(cats.length - 1, i));
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("opacity", 1);
+    const top = Math.min(...series.map(se => se.valores[i] == null ? H : y(se.valores[i])));
+    t.show(`<b>${esc(cats[i])}</b><br>` + series.map(se => `${esc(se.nome)}: ${pct(se.valores[i])}`).join("<br>"), x(i) * sc, top * sc);
+  });
+  hit.addEventListener("mouseleave", () => { t.hide(); cross.setAttribute("opacity", 0); });
+}
+
+/* ---------------------------------------------------------------- render */
+
+const ANO = 2026;
+const MESES_LONGOS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const ymDe = n => `${ANO}-${String(n).padStart(2, "0")}`;
+const ymCampanha = nome => ymDe(MESES_LONGOS.indexOf(nome) + 1);
+const nomeMes = ym => MESES_LONGOS[+ym.split("-")[1] - 1] + "/" + ym.split("-")[0];
+const COR_CANCELADAS = "#c1121f";  // vermelho sangue
+const ABAS = ["resumo", "campanha", "producao", "conversao", "naorenovadas", "canceladas", "comissoes", "sinistros"];
+let ABA = ABAS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "resumo";
+let MES = {};  // filtro de mês escolhido em cada aba ("" = período todo)
+
+function render() {
+  MES = {};
+  ligarAbas();
+  renderAba();
+}
+
+function ligarAbas() {
+  document.querySelectorAll("nav.abas a").forEach(a => a.onclick = e => {
+    e.preventDefault();
+    ABA = a.getAttribute("href").slice(1);
+    history.replaceState(null, "", "#" + ABA);
+    renderAba();
+    window.scrollTo({top: 0});
+  });
+}
+
+function renderAba() {
+  document.querySelectorAll("nav.abas a").forEach(l => l.classList.toggle("ativo", l.getAttribute("href") === "#" + ABA));
+  // Campanha e Produção geral: atualização diária (10h). Demais temas: mensal (dia 05).
+  const quando = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"}) : "—";
+  const at = D.atualizado || {diario: D.gerado_em, mensal: D.gerado_em};
+  const atual = ABA === "resumo" ? `${quando(at.diario)} (Campanha e Produção geral) · ${quando(at.mensal)} (demais temas)`
+              : ["campanha", "producao"].includes(ABA) ? quando(at.diario) : quando(at.mensal);
+  const corpo = {resumo: abaResumo, campanha: abaCampanha, producao: abaProducao, conversao: abaConversao,
+                 naorenovadas: () => abaApolices("naorenovadas"), canceladas: () => abaApolices("canceladas"), comissoes: abaComissoes, sinistros: abaSinistros}[ABA];
+  const el = document.getElementById("conteudo");
+  el.innerHTML = `<div class="unidade"><h2>${esc(D.nome)}</h2>${D.todos ? `<span class="pill" style="background:var(--gold);color:var(--navy)">${D.nomes.length} franqueados · visão do gestor</span>` : ""}${D.ficticio ? `<span class="pill" style="background:#fde2e1;color:#991b1b">DADOS FICTÍCIOS · uso exclusivo para treinamento — não representam nenhum franqueado</span>` : ""}<span class="atual">Dados atualizados em ${atual}</span></div><div id="aba"></div>
+    <div class="footer">BI Piaseg · versão de teste local</div>`;
+  corpo();
+  anexarTodos();
+}
+
+/* ---- períodos: cada aba guarda o filtro no formato da sua fonte ("2026-08", "8" ou "Agosto");
+   trimestre é sempre "T1".."T4" (do ano corrente, ANO) */
+const TRIM_ROT = ["", "1º trimestre (jan–mar)", "2º trimestre (abr–jun)", "3º trimestre (jul–set)", "4º trimestre (out–dez)"];
+const trimDe = n => Math.ceil(n / 3);
+const ehTrim = v => /^T[1-4]$/.test(v || "");
+const mesDoValor = v => /^\d{4}-\d{2}$/.test(v) ? +v.slice(5) : /^\d+$/.test(v) ? +v : MESES_LONGOS.indexOf(v) + 1;
+/* o mês n (do ano `ano`, quando informado) está dentro do período escolhido? */
+function noPeriodo(sel, n, ano) {
+  if (!sel) return true;
+  if (ehTrim(sel)) return (ano == null || ano === ANO) && trimDe(n) === +sel[1];
+  if (/^\d{4}-\d{2}$/.test(sel)) return (ano == null || ano === +sel.slice(0, 4)) && n === +sel.slice(5);
+  return n === mesDoValor(sel);
+}
+const rotuloPeriodo = sel => !sel ? "" : ehTrim(sel) ? `${sel[1]}º trimestre/${ANO}`
+  : /^\d{4}-\d{2}$/.test(sel) ? nomeMes(sel) : MESES_LONGOS[mesDoValor(sel) - 1] + "/" + ANO;
+const opcoesTrim = nums => [...new Set(nums.filter(Boolean).map(trimDe))].sort().reverse().map(q => ["T" + q, TRIM_ROT[q]]);
+/* índices das barras a destacar (mês escolhido ou os meses do trimestre) */
+const idxDestaque = (sel, mesesNum, anos) => !sel ? null : mesesNum.map((n, i) => noPeriodo(sel, n, anos ? anos[i] : undefined) ? i : -1).filter(i => i >= 0);
+
+/* filtro de período: trimestres + meses. opcoes = [[valor, rótulo]], todos = rótulo do período inteiro */
+function filtroMes(opcoes, todos, trims = []) {
+  const v = MES[ABA] ?? "";
+  const op = ([k, r]) => `<option value="${k}" ${k === v ? "selected" : ""}>${r}</option>`;
+  return `<div class="filtro"><label for="f-mes">Período</label><select id="f-mes">
+    <option value="">${todos}</option>
+    ${trims.length ? `<optgroup label="Trimestres">${trims.map(op).join("")}</optgroup><optgroup label="Meses">` : ""}${opcoes.map(op).join("")}${trims.length ? "</optgroup>" : ""}
+  </select></div>`;
+}
+function ligarFiltro() {
+  const f = document.getElementById("f-mes");
+  if (f) f.onchange = () => { MES[ABA] = f.value; renderAba(); };
+}
+function titulo(t, nota, filtro) {
+  return `<div class="sec-tit"><span class="barra"></span><h3>${t}</h3>${filtro || ""}${nota ? `<span class="nota">${nota}</span>` : ""}</div>`;
+}
+const kpi = (rot, val, det, hero) => `<div class="card kpi ${hero ? "hero" : ""}"><div class="rot">${rot}</div><div class="val">${val}</div><div class="det">${det || ""}</div></div>`;
+const vazio = (t, msg) => document.getElementById("aba").innerHTML = `<section>${titulo(t)}<div class="card vazio">${msg}</div></section>`;
+
+/* % de crescimento em texto colorido, mesma regra do indicador: sem base no ano anterior -> valor real */
+function crescTxt(v25, v26) {
+  v25 = v25 || 0; v26 = v26 || 0;
+  if (!v25) return !v26 ? "0%" : v26 > 0 ? `<span class="ind ind-up">▲</span>` : `<span class="ind ind-down">▼</span>`;
+  const v = (v26 - v25) / Math.abs(v25);
+  return Math.abs(v) < 0.0005 ? "0%" : `<span class="${v > 0 ? "up" : "down"}">${pct(v, Math.abs(v) < 0.01 ? 1 : 1)}</span>`;
+}
+function varTxt(r) {
+  if (!r.base_2025) return r.realizado_2026 ? `<span class="ind ind-up">▲</span> sem produção em 2025` : "0%";
+  const cls = r.variacao_pct >= 0 ? "up" : "down";
+  return `<span class="${cls}">${r.variacao_pct >= 0 ? "▲" : "▼"} ${pct(Math.abs(r.variacao_pct))}</span> vs ${kbrl(r.base_2025)} em 2025`;
+}
+const filtrarApolices = (a, sel) => sel ? a.lista.filter(x => x.data && noPeriodo(sel, +x.data.slice(5, 7), +x.data.slice(0, 4))) : a.lista;
+const somaPremio = l => l.reduce((s, x) => s + x.premio, 0);
+
+/* ---------------------------------------------------------------- resumo */
+
+function abaResumo() {
+  const c = D.campanha || {}, conv = D.conversao || [];
+  const meses = new Set();
+  D.meses_campanha.filter(m => c[m]).forEach(m => meses.add(ymCampanha(m)));
+  conv.forEach(m => meses.add(ymDe(m.mes)));
+  [D.nao_renovadas, D.canceladas].forEach(a => a.por_mes.forEach(m => meses.add(m.mes)));
+  (D.comissoes || []).forEach(r => r.mes && r.ano === ANO && meses.add(ymDe(r.mes)));
+  const doAno = [...meses].filter(m => m.startsWith(String(ANO))).sort().reverse();
+  const ops = doAno.map(m => [m, nomeMes(m)]), trims = opcoesTrim(doAno.map(m => +m.slice(5)));
+  const ym = MES.resumo || "";
+
+  const nomeCamp = ym ? (ehTrim(ym) ? ym : MESES_LONGOS[+ym.slice(5) - 1]) : "Geral";
+  const rotCamp = ehTrim(ym) ? `no ${ym[1]}º trimestre` : `em ${nomeCamp}`;
+  const camp = c[nomeCamp];
+  const cv = conv.filter(m => noPeriodo(ym, m.mes, ANO));
+  const rd = D.rede_conversao.filter(m => noPeriodo(ym, m.mes, ANO));
+  const cot = cv.reduce((a, m) => a + m.cotacoes, 0), ef = cv.reduce((a, m) => a + m.efetivados, 0);
+  const rcot = rd.reduce((a, m) => a + m.cotacoes, 0), ref = rd.reduce((a, m) => a + m.efetivados, 0);
+  const nr = filtrarApolices(D.nao_renovadas, ym), ca = filtrarApolices(D.canceladas, ym);
+  const per = ym ? rotuloPeriodo(ym) : "no ano";
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo("Resumo", "", filtroMes(ops, "Ano todo", trims))}
+    <div class="grid g3">
+      ${D.todos ? kpi("Rede Piaseg", `${D.nomes.length}`, `franqueados no BI${camp ? ` · ${camp.participantes} na campanha ${ym ? rotCamp : ""}` : ""}`, true) :
+        kpi(ym ? `Posição na campanha ${rotCamp}` : "Sua posição na campanha", camp ? camp.posicao + "º" : "—",
+            camp ? `de ${camp.participantes} franqueados · ${camp.pontos} pontos` : (ym ? "Sem campanha neste período" : "Sem participação na campanha"), true)}
+      ${kpi(`Produção na campanha ${ym ? "(" + rotuloPeriodo(ym) + ")" : "(2026)"}`, camp ? kbrl(camp.realizado_2026) : "—", camp ? varTxt(camp) : "")}
+      ${kpi(`Conversão ${per}`, cot ? pct(ef / cot) : "—", `${int(ef)} efetivados · ${int(cot)} cotações<br>Média da rede: ${rcot ? pct(ref / rcot) : "—"}`)}
+      ${kpi(`Apólices não renovadas ${ym ? "(" + rotuloPeriodo(ym) + ")" : ""}`, int(nr.length), `${brl0(somaPremio(nr))} em prêmio líquido`)}
+      ${kpi(`Apólices canceladas ${ym ? "(" + rotuloPeriodo(ym) + ")" : ""}`, int(ca.length), `${brl0(somaPremio(ca))} em prêmio líquido`)}
+      ${(() => { const m26 = new Set((D.comissoes || []).filter(r => r.ano === ANO && r.mes).map(r => r.mes)),
+        cm = (D.comissoes || []).filter(r => ym ? noPeriodo(ehTrim(ym) ? ym : String(+ym.slice(5)), r.mes) : (r.ano === ANO || !m26.size || m26.has(r.mes)));
+        const c26 = cm.filter(r => r.ano === ANO).reduce((a, r) => a + r.valor, 0), c25 = cm.filter(r => r.ano === ANO - 1).reduce((a, r) => a + r.valor, 0);
+        return kpi(`Comissões ${ym ? "(" + rotuloPeriodo(ym) + ")" : ANO + (m26.size ? " (" + MES_CURTO[Math.min(...m26) - 1] + "–" + MES_CURTO[Math.max(...m26) - 1] + ")" : "")}`, cm.length ? kbrl(c26) : "—", cm.length ? `${indicador(c25, c26)} vs ${kbrl(c25)} em ${ANO - 1}` : (ym ? "Sem comissões neste período" : "")); })()}
+    </div></section>`;
+  ligarFiltro();
+}
+
+/* ---------------------------------------------------------------- campanha */
+
+function abaCampanha() {
+  const c = D.campanha || {}, T = "Campanha — Arrancada de Vendas";
+  if (!c.Geral) return vazio(T, "Esta unidade não aparece no ranking da campanha.");
+  const meses = D.meses_campanha.filter(m => c[m]);
+  const sel = MES.campanha && c[MES.campanha] ? MES.campanha : "";
+  const tri = ehTrim(sel), nomeSel = tri ? `${sel[1]}º trimestre` : sel;
+  const doPeriodo = sel ? meses.filter(m => noPeriodo(sel, mesDoValor(m))) : meses;
+  const r = sel ? c[sel] : c.Geral;
+  const abaixo = sel && !tri && r.realizado_2026 < D.meta_minima_campanha;
+  const linhas = (tri || !sel ? doPeriodo : [sel]).map(m => {
+    const x = c[m], ab = x.realizado_2026 < D.meta_minima_campanha;
+    return `<tr><td>${m}</td><td class="n">${brl(x.base_2025)}</td><td class="n">${brl(x.realizado_2026)}${ab ? `<div class="aviso">abaixo da meta mínima</div>` : ""}</td>
+      <td class="n">${crescTxt(x.base_2025, x.realizado_2026)}</td>
+      <td class="n">${int(x.negocios_2026)}</td><td class="n"><span class="pill p${Math.round(x.pontos)}">${fmtPts(x.pontos)} pts</span></td>
+      <td class="n">${x.posicao ? `<b>${x.posicao}º</b> <span style="color:var(--muted)">de ${x.participantes}</span>` : `${x.participantes} franqueados`}</td></tr>`;
+  }).join("");
+  const g = tri ? c[sel] : c.Geral;
+  const total = sel && !tri ? "" : `<tr class="total"><td>${tri ? "Total do trimestre" : "Acumulado"}</td><td class="n">${brl(g.base_2025)}</td><td class="n">${brl(g.realizado_2026)}</td><td class="n">${crescTxt(g.base_2025, g.realizado_2026)}</td><td class="n">${int(g.negocios_2026)}</td><td class="n">${fmtPts(g.pontos)} pts</td><td class="n">${g.posicao ? `<b>${g.posicao}º</b> de ${g.participantes}` : `${g.participantes} franqueados`}</td></tr>`;
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, "",
+             filtroMes(meses.map(m => [m, m + "/" + ANO]), "Acumulado da campanha",
+                       (D.trimestres_campanha || []).filter(t => c[t]).reverse().map(t => [t, TRIM_ROT[+t[1]]])))}
+    <div class="grid g5">
+      ${D.todos ? kpi("Pontos médios por franqueado", r.pontos.toLocaleString("pt-BR"), `${r.participantes} franqueados ${sel ? (tri ? "no " : "em ") + nomeSel : "na campanha"}`, true)
+                : kpi(sel ? `Posição ${tri ? "no" : "em"} ${nomeSel}` : "Posição no ranking geral", r.posicao + "º", `de ${r.participantes} franqueados`, true)}
+      ${kpi("Realizado 2026", kbrl(r.realizado_2026), abaixo ? `<span class="down">Abaixo da meta mínima de ${brl0(D.meta_minima_campanha)}</span>` : `${int(r.negocios_2026)} negócios`)}
+      ${kpi("Base 2025 (meta de crescimento)", kbrl(r.base_2025), `${int(r.negocios_2025)} negócios em 2025`)}
+      ${kpi("Crescimento", crescTxt(r.base_2025, r.realizado_2026), r.base_2025 ? `${r.realizado_2026 - r.base_2025 >= 0 ? "+" : ""}${brl0(r.realizado_2026 - r.base_2025)}` : "sem produção em 2025")}
+      ${kpi(D.todos ? "Pontos (média por franqueado)" : "Pontos", fmtPts(r.pontos), sel ? (tri ? "pontos no trimestre" : "pontos no mês") : "pontos acumulados")}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Meta (base 2025) x Realizado 2026 <small>— por mês</small></h4><div id="ch-camp"></div></div>
+      ${D.todos ? `<div class="card"><h4>Franqueados por faixa de pontos <small>— por mês</small></h4><div id="ch-faixa"></div></div>`
+                : `<div class="card"><h4>Sua posição no ranking <small>— por mês (1º = melhor)</small></h4><div id="ch-pos"></div></div>`}
+    </div>
+    <div class="card" style="margin-top:14px"><div class="tbl-wrap"><table>
+      <thead><tr><th>Mês</th><th class="n">Base 2025</th><th class="n">Realizado 2026</th><th class="n">Variação</th><th class="n">Negócios</th><th class="n">${D.todos ? "Pontos (média)" : "Pontos"}</th><th class="n">${D.todos ? "Participantes" : "Posição"}</th></tr></thead>
+      <tbody>${linhas}${total}</tbody></table></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;${D.todos ? "display:none" : ""}">Por privacidade, o painel mostra apenas a sua posição — os resultados dos demais franqueados não são exibidos.</div></div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Produção por ramo <small>— 2025 x 2026${sel ? " · " + nomeSel : " · acumulado"}</small></h4>${tabelaComparativo(meses, sel, "por_ramo", "Ramo")}</div>
+      <div class="card"><h4>Participação por ramo <small>— ${ANO}${sel ? " · " + nomeSel : " · acumulado"}</small></h4>${(() => {
+        const acc = {};
+        (sel ? meses.filter(m => noPeriodo(sel, mesDoValor(m))) : meses).forEach(m => (c[m].por_ramo || []).forEach(r => acc[r.nome] = (acc[r.nome] || 0) + r.v26));
+        return pizza(Object.entries(acc).map(([nome, v]) => ({nome, v})), String(ANO)); })()}</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h4>Quantidade de negócios <small>— ${ANO - 1} x ${ANO}${sel ? " · " + nomeSel : " · acumulado"}</small></h4>${(() => {
+      const acc = {};
+      (sel ? meses.filter(m => noPeriodo(sel, mesDoValor(m))) : meses).forEach(m => (c[m].por_ramo || []).forEach(r => {
+        const a = acc[r.nome] ||= {nome: r.nome, q25: 0, q26: 0}; a.q25 += r.q25; a.q26 += r.q26; }));
+      return quadroNegocios(Object.values(acc), "Negócios = lançamentos de produção do relatório (mesma contagem da campanha)."); })()}</div>
+    <div class="card" style="margin-top:14px"><h4>Produção por seguradora <small>— 2025 x 2026${sel ? " · " + nomeSel : " · acumulado"}</small></h4>${tabelaComparativo(meses, sel, "por_seguradora", "Seguradora")}</div>
+  </section>`;
+  ligarFiltro();
+
+  const di = idxDestaque(sel, meses.map(mesDoValor));
+  barras(document.getElementById("ch-camp"), meses.map(m => m.slice(0,3)), [
+    {nome:"Base 2025 (meta de crescimento)", cor:"var(--verde-claro)", valores: meses.map(m => c[m].base_2025)},
+    {nome:"Realizado 2026", cor:"#072a3c", valores: meses.map(m => c[m].realizado_2026)},
+  ], {destaque: di, fmt: brl0, fmtEixo: eixo,
+      linhaRef: {valor: D.meta_minima_campanha, rotulo: "Meta mínima R$ 30 mil"},
+      tipExtra: i => D.todos ? `Pontos médios: ${c[meses[i]].pontos}` : `Pontos: ${c[meses[i]].pontos} · ${c[meses[i]].posicao}º lugar`});
+
+  if (D.todos) {  // quantos franqueados ficaram em cada faixa de pontos, mês a mês
+    const faixa = (m, p) => D.nomes.filter(f => ((D.membros[f].campanha || {})[m] || {}).pontos === p).length;
+    barras(document.getElementById("ch-faixa"), meses.map(m => m.slice(0,3)), [
+      {nome: "5 pts", cor: "#072a3c", valores: meses.map(m => faixa(m, 5))},
+      {nome: "3 pts", cor: "#c2a360", valores: meses.map(m => faixa(m, 3))},
+      {nome: "0 pts", cor: "#9db4c3", valores: meses.map(m => faixa(m, 0))},
+    ], {inteiro: true, destaque: di, tipExtra: i => `1 pt: ${faixa(meses[i], 1)}`});
+    return;
+  }
+  const box = document.getElementById("ch-pos");
+  const W = 640, H = 240, m = {t:24, r:8, b:26, l:16}, iw = W-m.l-m.r, ih = H-m.t-m.b, band = iw / meses.length;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  meses.forEach((mes, i) => {
+    const x0 = c[mes], frac = (x0.participantes - x0.posicao + 1) / x0.participantes, h = Math.max(4, frac * ih), bw = Math.min(40, band*.55);
+    const x = m.l + band*i + (band-bw)/2, y = m.t + ih - h, rr = 4, op = di == null || di.includes(i) ? 1 : 0.28;
+    s += `<path d="M${x},${m.t+ih} V${y+rr} Q${x},${y} ${x+rr},${y} H${x+bw-rr} Q${x+bw},${y} ${x+bw},${y+rr} V${m.t+ih} Z" fill="${x0.posicao <= 3 ? "#c2a360" : "#072a3c"}" opacity="${op}"/>`;
+    s += `<text class="vlabel" x="${x+bw/2}" y="${y-6}" text-anchor="middle">${x0.posicao}º/${x0.participantes}</text>`;
+    s += `<g class="axis"><text x="${x+bw/2}" y="${H-8}" text-anchor="middle">${mes.slice(0,3)}</text></g>`;
+  });
+  s += `<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="#cbd5e1"/></svg>`;
+  box.innerHTML = `<div class="legend"><span><i style="background:#c2a360"></i>Pódio (1º a 3º)</span><span><i style="background:#072a3c"></i>Demais posições</span></div><div class="chart">${s}</div>`;
+}
+
+/* indicador de crescimento (regra do Silvano, 2026-10-11):
+   sem variação -> 0% · tinha e zerou -> queda real (▼ 100%) · não tinha e passou a ter -> crescimento real em valor
+   (não existe % a partir de zero). fmt formata esse valor: R$ por padrão, int para quantidades */
+function indicador(v25, v26, fmt = brl0) {
+  v25 = v25 || 0; v26 = v26 || 0;
+  const sobe = t => `<span class="ind ind-up">▲${t ? " " + t : ""}</span>`, desce = t => `<span class="ind ind-down">▼${t ? " " + t : ""}</span>`;
+  if (!v25) return !v26 ? `<span class="ind ind-eq">0%</span>` : v26 > 0 ? sobe("") : desce("");  // sem base: só a seta
+  const v = (v26 - v25) / Math.abs(v25);
+  if (Math.abs(v) < 0.0005) return `<span class="ind ind-eq">0%</span>`;
+  const casas = Math.abs(v) < 0.01 ? 1 : 0;
+  return v > 0 ? sobe(pct(v, casas)) : desce(pct(Math.abs(v), casas));
+}
+
+/* 2025 x 2026 por ramo/seguradora, com indicador de crescimento/queda na frente da variação */
+/* quadro "Quantidade de negócios": negócios por ramo no ano anterior x atual, crescimento absoluto e % */
+function quadroNegocios(lin, nota) {
+  lin = lin.filter(r => r.q25 || r.q26).sort((a, b) => b.q26 - a.q26 || b.q25 - a.q25);
+  if (!lin.length) return `<div class="vazio">Sem negócios no período.</div>`;
+  const t = lin.reduce((a, r) => ({q25: a.q25 + r.q25, q26: a.q26 + r.q26}), {q25: 0, q26: 0});
+  const dif = r => { const d = r.q26 - r.q25; return `<span class="${d > 0 ? "up" : d < 0 ? "down" : ""}">${d > 0 ? "+" : ""}${int(d)}</span>`; };
+  const linha = (r, tot) => `<tr${tot ? ' class="total"' : ""}><td>${tot ? "Total" : esc(r.nome)}</td><td class="n">${int(r.q25)}</td><td class="n">${int(r.q26)}</td>
+    <td class="n">${dif(r)}</td><td class="n">${indicador(r.q25, r.q26, int)}</td></tr>`;
+  return `<div class="tbl-wrap" style="max-height:400px"><table><thead><tr><th>Ramo</th><th class="n">Negócios ${ANO - 1}</th><th class="n">Negócios ${ANO}</th>
+    <th class="n">Crescimento (nº)</th><th class="n">Crescimento (%)</th></tr></thead><tbody>${lin.map(r => linha(r)).join("")}${linha(t, true)}</tbody></table></div>
+    ${nota ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">${nota}</div>` : ""}`;
+}
+
+function tabelaComparativo(meses, sel, chave, rotulo) {
+  const c = D.campanha, ms = sel ? meses.filter(m => noPeriodo(sel, mesDoValor(m))) : meses;
+  const acc = {}, faltam = [];
+  ms.forEach(m => {
+    const lst = c[m] && c[m][chave];
+    if (!lst) { faltam.push(m); return; }
+    lst.forEach(r => { const a = acc[r.nome] ||= {nome: r.nome, v25: 0, q25: 0, v26: 0, q26: 0};
+      a.v25 += r.v25; a.q25 += r.q25; a.v26 += r.v26; a.q26 += r.q26; });
+  });
+  const linhas = Object.values(acc).sort((a, b) => b.v26 - a.v26 || b.v25 - a.v25);
+  if (!linhas.length) return `<div class="vazio">${faltam.length ? "Detalhe indisponível para este período." : "Sem produção no período."}</div>`;
+  const ind = r => indicador(r.v25, r.v26);
+  const t = linhas.reduce((a, r) => ({v25: a.v25 + r.v25, v26: a.v26 + r.v26, q25: a.q25 + r.q25, q26: a.q26 + r.q26}), {v25:0, v26:0, q25:0, q26:0});
+  const aviso = faltam.length ? `<div style="font-size:12px;color:var(--muted);margin-top:6px">Sem detalhe de ${rotulo.toLowerCase()} em: ${faltam.join(", ")}.</div>` : "";
+  return `<div class="tbl-wrap" style="max-height:380px"><table>
+    <thead><tr><th>${rotulo}</th><th class="n">2025</th><th class="n">2026</th><th class="n">Comparativo</th></tr></thead>
+    <tbody>${linhas.map(r => `<tr><td>${esc(r.nome)}</td>
+      <td class="n">${brl0(r.v25)}</td>
+      <td class="n">${brl0(r.v26)}</td>
+      <td class="n">${ind(r)}${r.v25 ? `<div class="qtd">${r.v26 - r.v25 >= 0 ? "+" : ""}${brl0(r.v26 - r.v25)}</div>` : ""}</td></tr>`).join("")}
+    <tr class="total"><td>Total</td><td class="n">${brl0(t.v25)}</td><td class="n">${brl0(t.v26)}</td><td class="n">${ind({v25: t.v25, v26: t.v26})}</td></tr>
+    </tbody></table></div>${aviso}`;
+}
+
+/* ---------------------------------------------------------------- conversão */
+
+function abaConversao() {
+  const conv = D.conversao || [], T = "Cotação x Conversão";
+  if (!conv.length) return vazio(T, "Sem cotações registradas para esta unidade.");
+  const sel = MES.conversao || "";
+  const ms = conv.filter(m => noPeriodo(sel, m.mes, ANO));
+  const rd = D.rede_conversao.filter(m => noPeriodo(sel, m.mes, ANO));
+  const cot = ms.reduce((a, m) => a + m.cotacoes, 0), ef = ms.reduce((a, m) => a + m.efetivados, 0);
+  const rcot = rd.reduce((a, m) => a + m.cotacoes, 0), ref = rd.reduce((a, m) => a + m.efetivados, 0);
+  const premio = ms.reduce((a, m) => a + m.premio_efetivado, 0);
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, `Cotações sem "Renovação Própria Corretora", cliente contado uma vez por mês`,
+             filtroMes([...conv].reverse().map(m => [String(m.mes), m.rotulo + "/" + ANO]), "Ano todo", opcoesTrim(conv.map(m => m.mes))))}
+    <div class="grid g5">
+      ${kpi(`Conversão ${sel ? (ehTrim(sel) ? "no " + sel[1] + "º trimestre" : "em " + MESES_LONGOS[+sel - 1]) : "no ano"}`, cot ? pct(ef / cot) : "—", "negócios efetivados ÷ cotações", true)}
+      ${kpi("Cotações", int(cot), "")}
+      ${kpi("Negócios efetivados", int(ef), "")}
+      ${kpi("Prêmio efetivado", kbrl(premio), "")}
+      ${kpi("Média da rede", rcot ? pct(ref / rcot) : "—", `${int(ref)} efetivados · ${int(rcot)} cotações na rede`)}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Cotações x Negócios efetivados <small>— por mês</small></h4><div id="ch-conv"></div></div>
+      <div class="card"><h4>% de conversão <small>— sua unidade x média da rede</small></h4><div id="ch-pct"></div></div>
+    </div>
+    <div id="conv-det" style="margin-top:14px"></div>
+  </section>`;
+  ligarFiltro();
+
+  const cats = conv.map(m => m.rotulo.slice(0,3));
+  barras(document.getElementById("ch-conv"), cats, [
+    {nome:"Cotações", cor:"var(--s2025)", valores: conv.map(m => m.cotacoes)},
+    {nome:"Negócios efetivados", cor:"#072a3c", valores: conv.map(m => m.efetivados)},
+  ], {inteiro: true, destaque: idxDestaque(sel, conv.map(m => m.mes)),
+      tipExtra: i => `Conversão: ${pct(conv[i].cotacoes ? conv[i].efetivados / conv[i].cotacoes : null)}<br>Prêmio efetivado: ${brl0(conv[i].premio_efetivado)}`});
+  const rede = Object.fromEntries(D.rede_conversao.map(r => [r.mes, r]));
+  linhas(document.getElementById("ch-pct"), cats, [
+    {nome:"Sua unidade", cor:"#072a3c", valores: conv.map(m => m.cotacoes ? m.efetivados / m.cotacoes : null)},
+    {nome:"Média da rede", cor:"#a8884a", tracejado:true, valores: conv.map(m => rede[m.mes] && rede[m.mes].cotacoes ? rede[m.mes].efetivados / rede[m.mes].cotacoes : null)},
+  ]);
+
+  const somar = chave => {
+    const acc = {};
+    ms.forEach(m => m[chave].forEach(r => { const k = r.ramo || r.vendedor; const a = acc[k] ||= {nome:k, cotacoes:0, efetivados:0}; a.cotacoes += r.cotacoes; a.efetivados += r.efetivados; }));
+    return Object.values(acc).sort((a, b) => b.cotacoes + b.efetivados - a.cotacoes - a.efetivados);
+  };
+  const tab = (tit, col, lin) => `<div><h4>${tit}</h4><div class="tbl-wrap"><table><thead><tr><th>${col}</th><th class="n">Cotações</th><th class="n">Efetivados</th><th class="n">Conversão</th></tr></thead><tbody>
+    ${lin.map(r => `<tr><td>${esc(r.nome)}</td><td class="n">${int(r.cotacoes)}</td><td class="n">${int(r.efetivados)}</td><td class="n">${r.cotacoes ? pct(r.efetivados / r.cotacoes) : "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
+  const sit = {};
+  ms.forEach(m => Object.entries(m.situacao).forEach(([k, v]) => sit[k] = (sit[k] || 0) + v));
+  const sitTab = `<div><h4>Situação das cotações</h4><div class="tbl-wrap"><table><thead><tr><th>Situação</th><th class="n">Qtd</th></tr></thead><tbody>
+    ${Object.entries(sit).sort((a,b) => b[1]-a[1]).map(([k,v]) => `<tr><td>${esc(k)}</td><td class="n">${int(v)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  const ramos = somar("por_ramo");
+  document.getElementById("conv-det").innerHTML = `
+    <div class="grid g2">
+      <div class="card">${tab("Por ramo", "Ramo", ramos)}</div>
+      <div class="card"><h4>Por ramo <small>— participação</small></h4><div class="pizzas">
+        ${pizza(ramos.map(r => ({nome: r.nome, v: r.cotacoes})), "Cotações", int)}${pizza(ramos.map(r => ({nome: r.nome, v: r.efetivados})), "Efetivados", int)}</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card">${tab(D.todos ? "Por franqueado" : "Por vendedor", D.todos ? "Franqueado" : "Vendedor", somar("por_vendedor"))}</div>
+      <div class="card">${sitTab}</div>
+    </div>`;
+}
+
+/* ---------------------------------------------------------------- comissões */
+
+const TIPOS_COMISSAO = [["novo", "Seguro novo"], ["renovacao", "Renovação"], ["endosso", "Endosso"], ["cancelamento", "Cancelamentos (estornos)"]];
+
+function abaComissoes() {
+  const T = "Comissões — sua remuneração";
+  const todas = D.comissoes || [];
+  if (!todas.length) return vazio(T, "Ainda não há repasses de comissão para esta unidade.");
+  // meses com repasse em 2026; 2025 é comparado só nos mesmos meses (período equivalente)
+  const mesesDisp = [...new Set(todas.filter(r => r.mes && r.ano === ANO).map(r => r.mes))].sort((a, b) => b - a);
+  const sel = MES.comissoes || "";
+  const rows = sel ? todas.filter(r => noPeriodo(sel, r.mes))
+                   : todas.filter(r => r.ano === ANO || !mesesDisp.length || mesesDisp.includes(r.mes));
+  const soma = (ano, f = () => true) => rows.filter(r => r.ano === ano && f(r)).reduce((a, r) => a + r.valor, 0);
+  const A = ANO, B = ANO - 1;
+  const tot26 = soma(A), tot25 = soma(B);
+  const periodo = mesesDisp.length ? `${MES_CURTO[Math.min(...mesesDisp) - 1]}–${MES_CURTO[Math.max(...mesesDisp) - 1]}` : "";
+  const per = sel ? (ehTrim(sel) ? `no ${sel[1]}º trimestre` : MESES_LONGOS[+sel - 1]) : (periodo ? periodo : "no ano");
+  const filtro = mesesDisp.length
+    ? filtroMes(mesesDisp.map(m => [String(m), MESES_LONGOS[m - 1] + "/" + A]), "Ano todo", opcoesTrim(mesesDisp))
+    : `<div class="filtro"><label>Mês</label><select disabled title="O relatório atual não informa o mês do pagamento"><option>Ano todo</option></select></div>`;
+  const avisoMes = mesesDisp.length ? "" :
+    `<div class="card" style="margin-bottom:14px;border-color:var(--gold);background:#fffaf0;font-size:14px">
+      O filtro mês a mês fica disponível assim que os relatórios de repasses forem salvos <b>um por mês</b>
+      (ex.: <i>Março 26.XLS</i>) ou vierem com a <b>data do pagamento</b>. Por enquanto, os valores abaixo são o total de cada ano.</div>`;
+  const card = (rot, v26, v25, hero) => kpi(rot, kbrl(v26), `${indicador(v25, v26)} vs ${kbrl(v25)} em ${B}`, hero);
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, `Repasses pagos · comparativo ${B} x ${A}${!sel && periodo ? ` no mesmo período (${periodo})` : ""} · total já descontados os estornos de cancelamento`, filtro)}
+    ${avisoMes}
+    <div class="grid g5">
+      ${card(`Total recebido ${per}`, tot26, tot25, true)}
+      ${TIPOS_COMISSAO.map(([k, r]) => card(r, soma(A, x => x.tipo === k), soma(B, x => x.tipo === k))).join("")}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>${B} x ${A} <small>— por tipo de receita</small></h4><div id="ch-com-tipo"></div></div>
+      <div class="card"><h4>${mesesDisp.length ? "Total por mês" : "Composição da receita " + A}</h4><div id="ch-com-2"></div></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Por tipo de receita <small>— crescimento</small></h4><div id="tb-com-tipo"></div></div>
+      <div class="card"><h4>Por ramo <small>— crescimento</small></h4><div id="tb-com-ramo"></div></div>
+    </div>
+  </section>`;
+  ligarFiltro();
+
+  const tipos = TIPOS_COMISSAO.slice(0, 3).concat([["total", "Total"]]);
+  const val = (ano, k) => k === "total" ? soma(ano) : soma(ano, x => x.tipo === k);
+  barras(document.getElementById("ch-com-tipo"), tipos.map(t => t[1]), [
+    {nome: String(B), cor: "var(--verde-claro)", valores: tipos.map(([k]) => val(B, k))},
+    {nome: String(A), cor: "#072a3c", valores: tipos.map(([k]) => val(A, k))},
+  ], {fmt: brl0, fmtEixo: eixo,
+      tipExtra: i => { const [k] = tipos[i], a = val(B, k), b = val(A, k); return a ? `Crescimento: ${pct((b - a) / Math.abs(a))}` : ""; }});
+
+  const box2 = document.getElementById("ch-com-2");
+  if (mesesDisp.length) {
+    const ms = [...mesesDisp].sort((a, b) => a - b);
+    const porMes = (ano, m) => todas.filter(r => r.ano === ano && r.mes === m).reduce((a, r) => a + r.valor, 0);
+    barras(box2, ms.map(m => MES_CURTO[m - 1]), [
+      {nome: String(B), cor: "var(--verde-claro)", valores: ms.map(m => porMes(B, m))},
+      {nome: String(A), cor: "#072a3c", valores: ms.map(m => porMes(A, m))},
+    ], {destaque: idxDestaque(sel, ms), fmt: brl0, fmtEixo: eixo});
+  } else {
+    const pos = TIPOS_COMISSAO.slice(0, 3).map(([k, r]) => [r, soma(A, x => x.tipo === k)]);
+    const base = pos.reduce((a, [, v]) => a + v, 0) || 1;
+    const cores = ["#072a3c", "#c2a360", "#9db4c3"];
+    box2.innerHTML = `<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;margin:6px 0 14px">
+        ${pos.map(([r, v], i) => `<div title="${r}: ${brl0(v)}" style="width:${Math.max(0, v) / base * 100}%;background:${cores[i]}"></div>`).join("")}</div>
+      <table><tbody>${pos.map(([r, v], i) => `<tr><td><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${cores[i]};margin-right:8px;vertical-align:-1px"></i>${r}</td>
+        <td class="n">${brl0(v)}</td><td class="n" style="color:var(--muted)">${pct(v / base)}</td></tr>`).join("")}</tbody></table>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">Participação de cada tipo na receita bruta de ${A} (antes dos estornos).</div>`;
+  }
+
+  const tabela = (lin, col) => `<div class="tbl-wrap" style="max-height:380px"><table>
+    <thead><tr><th>${col}</th><th class="n">${B}</th><th class="n">${A}</th><th class="n">Crescimento</th></tr></thead><tbody>
+    ${lin.map(r => `<tr><td>${esc(r.nome)}</td><td class="n">${brl0(r.v25)}</td>
+      <td class="n">${brl0(r.v26)}</td>
+      <td class="n">${indicador(r.v25, r.v26)}${r.v25 ? `<div class="qtd">${r.v26 - r.v25 >= 0 ? "+" : ""}${brl0(r.v26 - r.v25)}</div>` : ""}</td></tr>`).join("")}
+    <tr class="total"><td>Total</td><td class="n">${brl0(tot25)}</td><td class="n">${brl0(tot26)}</td><td class="n">${indicador(tot25, tot26)}</td></tr>
+    </tbody></table></div>`;
+  const agrupar = chave => {
+    const acc = {};
+    rows.forEach(r => { const k = chave(r), a = acc[k] ||= {nome: k, v25: 0, q25: 0, v26: 0, q26: 0};
+      if (r.ano === A) { a.v26 += r.valor; a.q26 += r.qtd; } else if (r.ano === B) { a.v25 += r.valor; a.q25 += r.qtd; } });
+    return acc;
+  };
+  const porTipo = agrupar(r => (TIPOS_COMISSAO.find(t => t[0] === r.tipo) || [0, "Outros"])[1]);
+  document.getElementById("tb-com-tipo").innerHTML = pizzasTipo(rows, A, B) + tabela(TIPOS_COMISSAO.map(t => porTipo[t[1]]).filter(Boolean).concat(porTipo.Outros ? [porTipo.Outros] : []), "Tipo");
+  document.getElementById("tb-com-ramo").innerHTML = tabela(Object.values(agrupar(r => r.celula)).sort((a, b) => b.v26 - a.v26), "Ramo");
+}
+
+/* pizza (rosca) da participação de cada tipo na receita bruta — 2025 ao lado de 2026 */
+const CORES_TIPO = {novo: "#072a3c", renovacao: "#c2a360", endosso: "#9db4c3"};
+function pizzasTipo(rows, A, B) {
+  const tipos = TIPOS_COMISSAO.slice(0, 3);  // cancelamentos são negativos: ficam fora da pizza
+  const rosca = ano => {
+    const vals = tipos.map(([k, r]) => ({k, r, v: Math.max(0, rows.filter(x => x.ano === ano && x.tipo === k).reduce((a, x) => a + x.valor, 0))}));
+    const tot = vals.reduce((a, x) => a + x.v, 0);
+    if (!tot) return `<div class="pizza"><div class="vazio">Sem receita em ${ano}</div></div>`;
+    const R = 72, r0 = 50, cx = 80, cy = 80;
+    let ang = -Math.PI / 2, fatias = "";
+    vals.forEach(x => {
+      if (!x.v) return;
+      const a = x.v / tot * Math.PI * 2, a1 = ang + a - (a < Math.PI * 2 - 0.001 ? 0.02 : 0);
+      const big = a > Math.PI ? 1 : 0, P = (rad, ang) => [cx + rad * Math.cos(ang), cy + rad * Math.sin(ang)];
+      const [x0, y0] = P(R, ang), [x1, y1] = P(R, a1), [x2, y2] = P(r0, a1), [x3, y3] = P(r0, ang);
+      const d = a >= Math.PI * 2 - 0.001
+        ? `M${cx},${cy-R} A${R},${R} 0 1 1 ${cx-0.01},${cy-R} L${cx-0.01},${cy-r0} A${r0},${r0} 0 1 0 ${cx},${cy-r0} Z`
+        : `M${x0},${y0} A${R},${R} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r0},${r0} 0 ${big} 0 ${x3},${y3} Z`;
+      fatias += `<path d="${d}" fill="${CORES_TIPO[x.k]}"><title>${x.r}: ${brl0(x.v)} (${pct(x.v / tot)})</title></path>`;
+      ang += a;
+    });
+    return `<div class="pizza"><svg viewBox="0 0 160 160" width="150" height="150" role="img" aria-label="Receita por tipo em ${ano}">${fatias}
+        <text x="80" y="76" text-anchor="middle" style="font-size:13px;fill:var(--muted)">${ano}</text>
+        <text x="80" y="94" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:var(--navy)">${brl0(tot)}</text></svg>
+      <table>${vals.map(x => `<tr><td><i style="background:${CORES_TIPO[x.k]}"></i>${x.r}</td><td class="n"><b>${x.v > 0 && x.v / tot < 0.005 ? "<1%" : pct(x.v / tot)}</b></td></tr>`).join("")}</table></div>`;
+  };
+  return `<div class="pizzas">${rosca(B)}${rosca(A)}</div>
+    <div style="font-size:12px;color:var(--muted);margin:-4px 0 12px">Participação de cada tipo na receita bruta (sem os estornos de cancelamento).</div>`;
+}
+
+/* ---------------------------------------------------------------- sinistros */
+
+function abaSinistros() {
+  const T = "Sinistros pagos";
+  const todos = D.sinistros || [];
+  if (!todos.length) return vazio(T, "Nenhum sinistro pago para esta unidade nos relatórios disponíveis.");
+  const chaveMes = r => `${r.ano}-${String(r.mes).padStart(2, "0")}`;
+  const meses = [...new Set(todos.map(chaveMes))].sort();
+  const sel = MES.sinistros || "";
+  const lista = todos.filter(r => noPeriodo(sel, r.mes, r.ano)).slice().sort((a, b) => b.valor - a.valor);
+  const total = lista.reduce((a, r) => a + r.valor, 0);
+  const nSin = new Set(lista.map(r => r.seguradora + "|" + r.sinistro)).size;
+  const porSin = {};
+  lista.forEach(r => { const k = r.seguradora + "|" + r.sinistro; const a = porSin[k] ||= {...r, valor: 0}; a.valor += r.valor; });
+  const maior = Object.values(porSin).sort((a, b) => b.valor - a.valor)[0];
+  const agrupar = campo => {
+    const acc = {};
+    lista.forEach(r => { const a = acc[r[campo]] ||= {nome: r[campo], qtd: 0, valor: 0}; a.qtd++; a.valor += r.valor; });
+    return Object.values(acc).sort((a, b) => b.valor - a.valor);
+  };
+  const tab = (lin, col) => `<div class="tbl-wrap" style="max-height:300px"><table><thead><tr><th>${col}</th><th class="n">Pagamentos</th><th class="n">Valor pago</th><th class="n">%</th></tr></thead><tbody>
+    ${lin.map(x => `<tr><td>${esc(x.nome)}</td><td class="n">${int(x.qtd)}</td><td class="n">${brl0(x.valor)}</td><td class="n">${pct(total ? x.valor / total : null)}</td></tr>`).join("")}</tbody></table></div>`;
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, D.todos ? "Indenizações pagas pelas seguradoras aos clientes da rede" : "Indenizações pagas pelas seguradoras aos clientes da sua carteira", filtroMes([...meses].reverse().map(m => [m, nomeMes(m)]), "Todos os meses", opcoesTrim(meses.filter(m => m.startsWith(String(ANO))).map(m => +m.slice(5)))))}
+    <div class="grid g5">
+      ${kpi(sel ? `Sinistros ${ehTrim(sel) ? "no" : "em"} ${rotuloPeriodo(sel)}` : "Sinistros pagos", int(nSin), `${int(lista.length)} pagamento(s)`, true)}
+      ${kpi("Total pago", brl0(total), "")}
+      ${kpi("Valor médio por sinistro", nSin ? brl0(total / nSin) : "—", "")}
+      ${kpi("Maior sinistro", maior ? brl0(maior.valor) : "—", maior ? `${D.todos ? esc(maior.franqueado) + "<br>" : ""}${esc(maior.segurado)}<br>${esc(maior.produto)} · ${esc(maior.seguradora)}` : "")}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Valor pago por mês</h4><div id="ch-sin"></div></div>
+      <div class="card"><h4>Por ramo</h4>${tab(agrupar("celula"), "Ramo")}</div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Por seguradora</h4>${tab(agrupar("seguradora"), "Seguradora")}</div>
+      <div class="card"><h4>Por produto</h4>${tab(agrupar("produto"), "Produto")}</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><b>Sinistros</b>
+        <input type="search" id="f-busca" placeholder="Buscar segurado, sinistro, seguradora…">
+        <span id="f-tot" style="color:var(--muted);font-size:13px"></span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Mês</th>${D.todos ? "<th>Franqueado</th>" : ""}<th>Segurado</th><th>Nº sinistro</th><th>Seguradora</th><th>Produto</th><th>Terceiro</th><th class="n">Valor pago</th></tr></thead><tbody id="tb-sin"></tbody></table></div>
+    </div>
+  </section>`;
+  ligarFiltro();
+
+  const porMes = meses.map(m => todos.filter(r => chaveMes(r) === m));
+  barras(document.getElementById("ch-sin"), meses.map(mesLabel),
+    [{nome: "Valor pago", cor: "#072a3c", valores: porMes.map(l => l.reduce((a, r) => a + r.valor, 0))}],
+    {destaque: idxDestaque(sel, meses.map(m => +m.slice(5)), meses.map(m => +m.slice(0, 4))), fmt: brl0, fmtEixo: eixo, tipExtra: i => `${int(porMes[i].length)} pagamento(s)`});
+
+  const fb = document.getElementById("f-busca");
+  const desenhar = () => {
+    const q = fb.value.trim().toLowerCase();
+    const l = lista.filter(r => !q || [r.segurado, r.sinistro, r.seguradora, r.produto, r.terceiro, r.franqueado].join(" ").toLowerCase().includes(q));
+    document.getElementById("tb-sin").innerHTML = l.map(r => `<tr><td>${mesLabel(chaveMes(r))}</td>${D.todos ? `<td>${esc(r.franqueado)}</td>` : ""}<td>${esc(r.segurado)}</td><td>${esc(r.sinistro)}</td><td>${esc(r.seguradora)}</td><td>${esc(r.produto)}</td><td>${esc(r.terceiro) || "—"}</td><td class="n">${brl0(r.valor)}</td></tr>`).join("")
+      || `<tr><td colspan="7" class="vazio">Nada encontrado.</td></tr>`;
+    document.getElementById("f-tot").textContent = `${int(l.length)} pagamento(s) · ${brl0(l.reduce((a, r) => a + r.valor, 0))}`;
+  };
+  fb.oninput = desenhar; desenhar();
+}
+
+/* ---------------------------------------------------------------- pizza genérica (rosca) */
+
+const CORES_PIZZA = ["#072a3c", "#c2a360", "#4f86a8", "#e0b9a0", "#1e6f63", "#7a4e8a"], COR_OUTROS = "#d1d5db";
+/* itens = [{nome, v}]; agrupa o excedente em "Outros". fmt formata o total do centro */
+function pizza(itens, rotulo, fmt = brl0, maxFatias = 6) {
+  let l = itens.filter(x => x.v > 0).sort((a, b) => b.v - a.v);
+  if (l.length > maxFatias) {
+    const resto = l.slice(maxFatias - 1);
+    l = l.slice(0, maxFatias - 1).concat([{nome: `Outros (${resto.length})`, v: resto.reduce((a, x) => a + x.v, 0), outros: true}]);
+  }
+  const tot = l.reduce((a, x) => a + x.v, 0);
+  if (!tot) return `<div class="pizza"><div class="vazio">Sem dados no período</div></div>`;
+  const R = 72, r0 = 50, cx = 80, cy = 80, P = (rad, a) => [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+  const cor = (x, i) => x.outros ? COR_OUTROS : CORES_PIZZA[i];
+  let ang = -Math.PI / 2, fatias = "";
+  l.forEach((x, i) => {
+    const a = x.v / tot * Math.PI * 2;
+    if (a >= Math.PI * 2 - 0.001) {
+      fatias += `<path d="M${cx},${cy - R} A${R},${R} 0 1 1 ${cx - 0.01},${cy - R} L${cx - 0.01},${cy - r0} A${r0},${r0} 0 1 0 ${cx},${cy - r0} Z" fill="${cor(x, i)}"><title>${esc(x.nome)}: 100%</title></path>`;
+    } else {
+      const a1 = ang + a - Math.min(0.02, a / 3), big = a > Math.PI ? 1 : 0;
+      const [x0, y0] = P(R, ang), [x1, y1] = P(R, a1), [x2, y2] = P(r0, a1), [x3, y3] = P(r0, ang);
+      fatias += `<path d="M${x0},${y0} A${R},${R} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r0},${r0} 0 ${big} 0 ${x3},${y3} Z" fill="${cor(x, i)}"><title>${esc(x.nome)}: ${fmt(x.v)} (${pct(x.v / tot)})</title></path>`;
+    }
+    ang += a;
+  });
+  const p = v => v / tot < 0.005 ? "<1%" : pct(v / tot);
+  return `<div class="pizza"><svg viewBox="0 0 160 160" width="150" height="150" role="img" aria-label="${esc(rotulo)}">${fatias}
+      <text x="80" y="76" text-anchor="middle" style="font-size:12px;fill:var(--muted)">${esc(rotulo)}</text>
+      <text x="80" y="94" text-anchor="middle" style="font-size:12.5px;font-weight:600;fill:var(--navy)">${fmt(tot)}</text></svg>
+    <table>${l.map((x, i) => `<tr><td><i style="background:${cor(x, i)}"></i>${esc(x.nome)}</td><td class="n"><b>${p(x.v)}</b></td></tr>`).join("")}</table></div>`;
+}
+
+/* ---------------------------------------------------------------- produção geral */
+
+/* linhas da produção no período, com a regra de comparação justa:
+   2026 = todos os meses escolhidos; 2025 e crescimento = só os meses que existem nos dois anos */
+function recorteProducao(rows, sel) {
+  const doPer = rows.filter(r => noPeriodo(sel, r.mes, r.ano === ANO - 1 ? undefined : ANO) && (r.ano === ANO || r.ano === ANO - 1));
+  const m26 = new Set(doPer.filter(r => r.ano === ANO).map(r => r.mes)), m25 = new Set(doPer.filter(r => r.ano === ANO - 1).map(r => r.mes));
+  const comp = [...m26].filter(m => m25.has(m)).sort((a, b) => a - b);
+  return {r26: doPer.filter(r => r.ano === ANO), comp, c26: doPer.filter(r => r.ano === ANO && comp.includes(r.mes)), c25: doPer.filter(r => r.ano === ANO - 1 && comp.includes(r.mes))};
+}
+const somaV = l => l.reduce((a, r) => a + r.valor, 0), somaQ = l => l.reduce((a, r) => a + r.qtd, 0);
+const faixaMeses = ms => ms.length ? (ms.length === 1 ? MES_CURTO[ms[0] - 1] : `${MES_CURTO[ms[0] - 1]}–${MES_CURTO[ms[ms.length - 1] - 1]}`) : "";
+
+function abaProducao() {
+  const T = "Produção geral — todos os ramos e produtos";
+  const todas = D.producao || [];
+  if (!todas.length) return vazio(T, "Sem produção registrada para esta unidade.");
+  const meses26 = [...new Set(todas.filter(r => r.ano === ANO).map(r => r.mes))].sort((a, b) => b - a);
+  const sel = MES.producao || "";
+  const {r26, comp, c26, c25} = recorteProducao(todas, sel);
+  const v26 = somaV(r26), q26 = somaQ(r26), cv26 = somaV(c26), cv25 = somaV(c25);
+  const per = sel ? rotuloPeriodo(sel) : `${ANO} (${faixaMeses([...meses26].reverse())})`;
+  const agrupa = (campo, l26, l25) => {
+    const acc = {};
+    l26.forEach(r => { const a = acc[r[campo]] ||= {nome: r[campo], v25: 0, q25: 0, v26: 0, q26: 0}; a.v26 += r.valor; a.q26 += r.qtd; });
+    l25.forEach(r => { const a = acc[r[campo]] ||= {nome: r[campo], v25: 0, q25: 0, v26: 0, q26: 0}; a.v25 += r.valor; a.q25 += r.qtd; });
+    return Object.values(acc).sort((a, b) => b.v26 - a.v26 || b.v25 - a.v25);
+  };
+  // tabelas comparam o mesmo período nos dois anos; sem base 2025 no período, mostram só 2026
+  const tabela = (campo, rot) => {
+    const temComp = comp.length > 0, lin = temComp ? agrupa(campo, c26, c25) : agrupa(campo, r26, []);
+    const t = lin.reduce((a, r) => ({v25: a.v25 + r.v25, v26: a.v26 + r.v26}), {v25: 0, v26: 0});
+    return `<div class="tbl-wrap" style="max-height:400px"><table><thead><tr><th>${rot}</th><th class="n">${ANO - 1}</th><th class="n">${ANO}</th><th class="n">Crescimento</th></tr></thead><tbody>
+      ${lin.map(r => `<tr><td>${esc(r.nome)}</td><td class="n">${temComp ? brl0(r.v25) : "—"}</td>
+        <td class="n">${brl0(r.v26)}</td>
+        <td class="n">${temComp ? indicador(r.v25, r.v26) + `${r.v25 ? `<div class="qtd">${r.v26 - r.v25 >= 0 ? "+" : ""}${brl0(r.v26 - r.v25)}</div>` : ""}` : `<span class="qtd">sem base ${ANO - 1}</span>`}</td></tr>`).join("")}
+      <tr class="total"><td>Total</td><td class="n">${temComp ? brl0(t.v25) : "—"}</td><td class="n">${brl0(t.v26)}</td><td class="n">${temComp ? indicador(t.v25, t.v26) : ""}</td></tr>
+      </tbody></table></div>`;
+  };
+  const notaComp = comp.length ? `Crescimento comparado no mesmo período dos dois anos (${faixaMeses(comp)}).` : `Não há produção de ${ANO - 1} registrada para este período: o crescimento aparece nos meses com base (jul em diante).`;
+  const ramos26 = agrupa("ramo", r26, []);
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, `Análise de Produção (todos os ramos, sem as exclusões da campanha) · ${notaComp}`,
+             filtroMes(meses26.map(m => [String(m), MESES_LONGOS[m - 1] + "/" + ANO]), "Ano todo", opcoesTrim(meses26)))}
+    <div class="grid g5">
+      ${kpi(`Produção ${per}`, brl0(v26), `${int(q26)} negócios`, true)}
+      ${kpi("Crescimento", comp.length ? `<span class="${cv26 >= cv25 ? "up" : "down"}">${cv25 ? pct((cv26 - cv25) / Math.abs(cv25)) : "—"}</span>` : "—",
+            comp.length ? `${brl0(cv26)} vs ${brl0(cv25)} em ${ANO - 1} (${faixaMeses(comp)})` : `sem base ${ANO - 1} no período`)}
+      ${kpi("Prêmio médio por negócio", q26 ? brl0(v26 / q26) : "—", `${ANO}`)}
+      ${kpi("Principal ramo", ramos26[0] ? `<span style="font-size:19px">${esc(ramos26[0].nome)}</span>` : "—", ramos26[0] ? `${brl0(ramos26[0].v26)} · ${pct(v26 ? ramos26[0].v26 / v26 : null)} da produção` : "")}
+      ${(() => { if (!comp.length) return kpi("Ramos em crescimento", "—", `sem base ${ANO - 1} no período`);
+        const l = agrupa("ramo", c26, c25).filter(r => r.v25 > 0 || r.v26 > 0), up = l.filter(r => r.v26 > r.v25).length;
+        return kpi("Ramos em crescimento", `${up} de ${l.length}`, `no período comparável (${faixaMeses(comp)})`); })()}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Produção por mês <small>— ${ANO - 1} x ${ANO}</small></h4><div id="ch-prod"></div></div>
+      <div class="card"><h4>Participação por ramo <small>— ${ANO}${sel ? " · " + rotuloPeriodo(sel) : ""}</small></h4>${pizza(ramos26.map(r => ({nome: r.nome, v: r.v26})), String(ANO))}</div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Por ramo <small>— crescimento</small></h4>${tabela("ramo", "Ramo")}</div>
+      <div class="card"><h4>Por seguradora <small>— crescimento</small></h4>${tabela("seguradora", "Seguradora")}</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h4>Quantidade de negócios <small>— ${ANO - 1} x ${ANO}${comp.length ? " · " + faixaMeses(comp) : ""}</small></h4>${comp.length
+      ? quadroNegocios(agrupa("ramo", c26, c25).map(r => ({nome: r.nome, q25: r.q25, q26: r.q26})), `Comparado no mesmo período dos dois anos (${faixaMeses(comp)}).`)
+      : `<div class="vazio">Não há negócios de ${ANO - 1} registrados neste período para comparar.</div>`}</div>
+  </section>`;
+  ligarFiltro();
+
+  const ms = [...new Set(todas.map(r => r.mes))].sort((a, b) => a - b);
+  const porMes = (ano, m) => somaV(todas.filter(r => r.ano === ano && r.mes === m));
+  barras(document.getElementById("ch-prod"), ms.map(m => MES_CURTO[m - 1]), [
+    {nome: String(ANO - 1), cor: "var(--verde-claro)", valores: ms.map(m => porMes(ANO - 1, m))},
+    {nome: String(ANO), cor: "#072a3c", valores: ms.map(m => porMes(ANO, m))},
+  ], {destaque: idxDestaque(sel, ms), fmt: brl0, fmtEixo: eixo,
+      tipExtra: i => { const a = porMes(ANO - 1, ms[i]), b = porMes(ANO, ms[i]); return a && b ? `Crescimento: ${pct((b - a) / Math.abs(a))}` : ""; }});
+}
+
+/* ---------------------------------------------------------------- visão TODOS (só gestor) */
+
+const OPCAO_TODOS = "__TODOS__";
+
+function resumoApolicesJS(lista) {
+  const pm = {}, pp = {};
+  lista.forEach(a => {
+    if (a.data) { const k = a.data.slice(0, 7), m = pm[k] ||= {mes: k, qtd: 0, premio: 0}; m.qtd++; m.premio += a.premio; }
+    const p = pp[a.produto] ||= {produto: a.produto, qtd: 0, premio: 0}; p.qtd++; p.premio += a.premio;
+  });
+  return {qtd: lista.length, premio: somaPremio(lista), por_mes: Object.values(pm).sort((a, b) => a.mes < b.mes ? -1 : 1),
+          por_produto: Object.values(pp).sort((a, b) => b.premio - a.premio),
+          lista: lista.slice().sort((a, b) => (b.data || "").localeCompare(a.data || ""))};
+}
+
+/* soma todas as unidades num objeto com o mesmo formato de um franqueado */
+function agregar(R) {
+  const M = R.membros, nomes = Object.keys(M).sort();
+  const A = {...R, nome: "TODOS — Rede Piaseg", todos: true, nomes};
+  const camp = {};
+  [...R.meses_campanha, ...(R.trimestres_campanha || []), "Geral"].forEach(m => {
+    const rs = nomes.map(f => (M[f].campanha || {})[m]).filter(Boolean);
+    if (!rs.length) return;
+    const s = k => rs.reduce((a, r) => a + (r[k] || 0), 0);
+    const junta = ch => {
+      if (rs.every(r => !r[ch])) return null;
+      const acc = {};
+      rs.forEach(r => (r[ch] || []).forEach(x => { const a = acc[x.nome] ||= {nome: x.nome, v25: 0, q25: 0, v26: 0, q26: 0};
+        a.v25 += x.v25; a.q25 += x.q25; a.v26 += x.v26; a.q26 += x.q26; }));
+      return Object.values(acc);
+    };
+    const b = s("base_2025"), r26 = s("realizado_2026");
+    camp[m] = {posicao: null, participantes: rs.length, base_2025: b, realizado_2026: r26,
+               negocios_2025: s("negocios_2025"), negocios_2026: s("negocios_2026"), variacao_pct: b ? (r26 - b) / b : null,
+               pontos: Math.round(s("pontos") / rs.length * 10) / 10, por_ramo: junta("por_ramo"), por_seguradora: junta("por_seguradora")};
+  });
+  A.campanha = camp;
+  A.nao_renovadas = resumoApolicesJS(nomes.flatMap(f => M[f].nao_renovadas.lista.map(x => ({...x, franqueado: f}))));
+  A.canceladas = resumoApolicesJS(nomes.flatMap(f => M[f].canceladas.lista.map(x => ({...x, franqueado: f}))));
+  const conv = {};
+  nomes.forEach(f => (M[f].conversao || []).forEach(m => {
+    const a = conv[m.mes] ||= {mes: m.mes, rotulo: m.rotulo, cotacoes: 0, efetivados: 0, premio_efetivado: 0, situacao: {}, ramos: {}, por_vendedor: []};
+    a.cotacoes += m.cotacoes; a.efetivados += m.efetivados; a.premio_efetivado += m.premio_efetivado;
+    Object.entries(m.situacao).forEach(([k, v]) => a.situacao[k] = (a.situacao[k] || 0) + v);
+    m.por_ramo.forEach(r => { const x = a.ramos[r.ramo] ||= {ramo: r.ramo, cotacoes: 0, efetivados: 0}; x.cotacoes += r.cotacoes; x.efetivados += r.efetivados; });
+    a.por_vendedor.push({vendedor: f, cotacoes: m.cotacoes, efetivados: m.efetivados});
+  }));
+  A.conversao = Object.values(conv).sort((a, b) => a.mes - b.mes).map(({ramos, ...m}) => ({...m, por_ramo: Object.values(ramos)}));
+  A.comissoes = nomes.flatMap(f => (M[f].comissoes || []).map(r => ({...r, franqueado: f})));
+  A.sinistros = nomes.flatMap(f => (M[f].sinistros || []).map(r => ({...r, franqueado: f})));
+  A.producao = nomes.flatMap(f => (M[f].producao || []).map(r => ({...r, franqueado: f})));
+  return A;
+}
+
+/* métricas de uma unidade no período escolhido em cada aba (mesmas regras das abas) */
+function metricas(F, aba, sel) {
+  const camp = F.campanha || {};
+  if (aba === "campanha") return camp[sel || "Geral"] || null;
+  if (aba === "conversao") {
+    const ms = (F.conversao || []).filter(m => noPeriodo(sel, m.mes, ANO));
+    if (!ms.length) return null;
+    const cot = ms.reduce((a, m) => a + m.cotacoes, 0), ef = ms.reduce((a, m) => a + m.efetivados, 0);
+    return {cot, ef, premio: ms.reduce((a, m) => a + m.premio_efetivado, 0)};
+  }
+  if (aba === "naorenovadas" || aba === "canceladas") {
+    const l = filtrarApolices(aba === "canceladas" ? F.canceladas : F.nao_renovadas, sel);
+    return l.length ? {qtd: l.length, premio: somaPremio(l)} : null;
+  }
+  if (aba === "comissoes") {
+    const m26 = new Set(D.comissoes.filter(r => r.ano === ANO && r.mes).map(r => r.mes));
+    const rows = (F.comissoes || []).filter(r => sel ? noPeriodo(sel, r.mes) : (r.ano === ANO || !m26.size || m26.has(r.mes)));
+    if (!rows.length) return null;
+    const v = ano => rows.filter(r => r.ano === ano).reduce((a, r) => a + r.valor, 0);
+    return {v25: v(ANO - 1), v26: v(ANO)};
+  }
+  if (aba === "producao") {
+    if (!(F.producao || []).length) return null;
+    const {r26, comp, c26, c25} = recorteProducao(F.producao, sel);
+    return r26.length || c25.length ? {v26: somaV(r26), c26: somaV(c26), c25: somaV(c25), comp: comp.length} : null;
+  }
+  if (aba === "sinistros") {
+    const l = (F.sinistros || []).filter(r => noPeriodo(sel, r.mes, r.ano));
+    return l.length ? {n: new Set(l.map(r => r.seguradora + "|" + r.sinistro)).size, total: l.reduce((a, r) => a + r.valor, 0)} : null;
+  }
+  return null;
+}
+
+/* tabela "Por franqueado" + linha de média, anexada ao fim de cada aba na visão TODOS */
+function anexarTodos() {
+  if (!D.todos) return;
+  const sel = MES[ABA] || "", M = D.membros;
+  const linhas = D.nomes.map(f => ({f, m: metricas(M[f], ABA, ABA === "resumo" ? "" : sel)})).filter(x => x.m);
+  const media = (k, l = linhas) => l.length ? l.reduce((a, x) => a + (x.m[k] || 0), 0) / l.length : 0;
+  let cab, corpo, rodape, tit = "Comparativo por franqueado", nota = "";
+  if (ABA === "resumo") return anexarResumoTodos();
+  if (ABA === "campanha") {
+    linhas.sort((a, b) => a.m.posicao - b.m.posicao);
+    tit = `Ranking completo da campanha ${sel ? "— " + (ehTrim(sel) ? sel[1] + "º trimestre" : sel) : "— acumulado"}`;
+    nota = "Visível só para o gestor: os franqueados continuam vendo apenas a própria posição.";
+    cab = `<th class="n">Posição</th><th>Franqueado</th><th class="n">Base 2025</th><th class="n">Realizado 2026</th><th class="n">Crescimento</th><th class="n">Negócios</th><th class="n">Pontos</th>`;
+    corpo = linhas.map(({f, m}) => `<tr><td class="n"><b>${m.posicao}º</b></td><td>${esc(f)}</td><td class="n">${brl0(m.base_2025)}</td><td class="n">${brl0(m.realizado_2026)}${m.realizado_2026 < D.meta_minima_campanha ? `<div class="aviso">abaixo da meta mínima</div>` : ""}</td>
+      <td class="n">${indicador(m.base_2025, m.realizado_2026)}</td><td class="n">${int(m.negocios_2026)}</td><td class="n"><span class="pill p${Math.min(5, m.pontos)}">${m.pontos} pts</span></td></tr>`).join("");
+    const b = media("base_2025"), r = media("realizado_2026");
+    rodape = `<td></td><td>Média por franqueado (${linhas.length})</td><td class="n">${brl0(b)}</td><td class="n">${brl0(r)}</td><td class="n">${indicador(b, r)}</td><td class="n">${int(Math.round(media("negocios_2026")))}</td><td class="n">${(Math.round(media("pontos") * 10) / 10).toLocaleString("pt-BR")} pts</td>`;
+  } else if (ABA === "conversao") {
+    linhas.sort((a, b) => b.m.ef / (b.m.cot || 1) - a.m.ef / (a.m.cot || 1));
+    cab = `<th>Franqueado</th><th class="n">Cotações</th><th class="n">Efetivados</th><th class="n">Conversão</th><th class="n">Prêmio efetivado</th>`;
+    corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${int(m.cot)}</td><td class="n">${int(m.ef)}</td><td class="n">${m.cot ? pct(m.ef / m.cot) : "—"}</td><td class="n">${brl0(m.premio)}</td></tr>`).join("");
+    const c = media("cot"), e = media("ef");
+    rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${int(Math.round(c))}</td><td class="n">${int(Math.round(e))}</td><td class="n">${c ? pct(e / c) : "—"}</td><td class="n">${brl0(media("premio"))}</td>`;
+  } else if (ABA === "naorenovadas" || ABA === "canceladas") {
+    linhas.sort((a, b) => b.m.premio - a.m.premio);
+    cab = `<th>Franqueado</th><th class="n">Apólices</th><th class="n">Prêmio líquido</th><th class="n">% do total</th>`;
+    const tot = linhas.reduce((a, x) => a + x.m.premio, 0);
+    corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${int(m.qtd)}</td><td class="n">${brl0(m.premio)}</td><td class="n">${pct(tot ? m.premio / tot : null)}</td></tr>`).join("");
+    rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${(Math.round(media("qtd") * 10) / 10).toLocaleString("pt-BR")}</td><td class="n">${brl0(media("premio"))}</td><td class="n"></td>`;
+  } else if (ABA === "comissoes") {
+    linhas.sort((a, b) => b.m.v26 - a.m.v26);
+    cab = `<th>Franqueado</th><th class="n">${ANO - 1}</th><th class="n">${ANO}</th><th class="n">Crescimento</th>`;
+    corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${brl0(m.v25)}</td><td class="n">${brl0(m.v26)}</td><td class="n">${indicador(m.v25, m.v26)}${m.v25 ? `<div class="qtd">${m.v26 - m.v25 >= 0 ? "+" : ""}${brl0(m.v26 - m.v25)}</div>` : ""}</td></tr>`).join("");
+    const a = media("v25"), b = media("v26");
+    rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${brl0(a)}</td><td class="n">${brl0(b)}</td><td class="n">${indicador(a, b)}</td>`;
+  } else if (ABA === "producao") {
+    linhas.sort((a, b) => b.m.v26 - a.m.v26);
+    cab = `<th>Franqueado</th><th class="n">Produção ${ANO}</th><th class="n">${ANO - 1} (mesmo período)</th><th class="n">${ANO} (mesmo período)</th><th class="n">Crescimento</th>`;
+    corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${brl0(m.v26)}</td><td class="n">${m.comp ? brl0(m.c25) : "—"}</td><td class="n">${m.comp ? brl0(m.c26) : "—"}</td><td class="n">${m.comp ? indicador(m.c25, m.c26) : ""}</td></tr>`).join("");
+    const a = media("c25"), b = media("c26");
+    rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${brl0(media("v26"))}</td><td class="n">${brl0(a)}</td><td class="n">${brl0(b)}</td><td class="n">${indicador(a, b)}</td>`;
+  } else if (ABA === "sinistros") {
+    linhas.sort((a, b) => b.m.total - a.m.total);
+    cab = `<th>Franqueado</th><th class="n">Sinistros</th><th class="n">Total pago</th><th class="n">Valor médio</th>`;
+    corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${int(m.n)}</td><td class="n">${brl0(m.total)}</td><td class="n">${brl0(m.total / m.n)}</td></tr>`).join("");
+    rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${(Math.round(media("n") * 10) / 10).toLocaleString("pt-BR")}</td><td class="n">${brl0(media("total"))}</td><td class="n"></td>`;
+  } else return;
+  const sec = document.querySelector("#aba section");
+  if (!sec) return;
+  sec.insertAdjacentHTML("beforeend", `<div class="card" style="margin-top:14px;border-color:var(--gold)">
+    <h4>${tit} <small>— ${linhas.length} franqueados${sel ? "" : ""}</small></h4>
+    ${nota ? `<div style="font-size:12px;color:var(--muted);margin:-4px 0 8px">${nota}</div>` : ""}
+    <div class="tbl-wrap" style="max-height:520px"><table><thead><tr>${cab}</tr></thead><tbody>${corpo}<tr class="total">${rodape}</tr></tbody></table></div></div>`);
+}
+
+/* Resumo da rede: cartões de média por franqueado + quadro geral comparando as unidades */
+function anexarResumoTodos() {
+  const ym = MES.resumo || "", M = D.membros, tri = ehTrim(ym), mesN = ym && !tri ? +ym.slice(5) : null;
+  const selCamp = ym ? (tri ? ym : MESES_LONGOS[mesN - 1]) : "", selConv = ym ? (tri ? ym : String(mesN)) : "", selSin = ym;
+  const lin = D.nomes.map(f => ({f,
+    camp: metricas(M[f], "campanha", selCamp), conv: metricas(M[f], "conversao", selConv),
+    nr: metricas(M[f], "naorenovadas", ym), ca: metricas(M[f], "canceladas", ym),
+    com: metricas(M[f], "comissoes", selConv), sin: metricas(M[f], "sinistros", selSin)}));
+  const med = (k, f) => { const v = lin.map(x => x[k]).filter(Boolean).map(f); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const n = k => lin.filter(x => x[k]).length;
+  const cards = `<h4 style="margin:18px 0 10px;color:var(--navy)">Média por franqueado ${ym ? "— " + rotuloPeriodo(ym) : ""}</h4>
+    <div class="grid g3">
+      ${kpi("Produção média na campanha", med("camp", m => m.realizado_2026) != null ? brl0(med("camp", m => m.realizado_2026)) : "—", n("camp") ? `${n("camp")} franqueados · pontos médios: ${(Math.round(med("camp", m => m.pontos) * 10) / 10).toLocaleString("pt-BR")}` : "")}
+      ${kpi("Conversão média", med("conv", m => m.cot ? m.ef / m.cot : 0) != null ? pct(med("conv", m => m.cot ? m.ef / m.cot : 0)) : "—", n("conv") ? `média das unidades (${n("conv")}) · ${int(Math.round(med("conv", m => m.cot)))} cotações por unidade` : "")}
+      ${kpi("Não renovadas por franqueado", med("nr", m => m.qtd) != null ? (Math.round(med("nr", m => m.qtd) * 10) / 10).toLocaleString("pt-BR") : "—", n("nr") ? `${brl0(med("nr", m => m.premio))} em prêmio · ${n("nr")} franqueados` : "")}
+      ${kpi("Canceladas por franqueado", med("ca", m => m.qtd) != null ? (Math.round(med("ca", m => m.qtd) * 10) / 10).toLocaleString("pt-BR") : "—", n("ca") ? `${brl0(med("ca", m => m.premio))} em prêmio · ${n("ca")} franqueados` : "")}
+      ${kpi("Comissão média", med("com", m => m.v26) != null ? brl0(med("com", m => m.v26)) : "—", n("com") ? `${indicador(med("com", m => m.v25), med("com", m => m.v26))} vs ${brl0(med("com", m => m.v25))} em ${ANO - 1}` : "")}
+      ${kpi("Sinistros pagos por franqueado", med("sin", m => m.total) != null ? brl0(med("sin", m => m.total)) : "—", n("sin") ? `${(Math.round(med("sin", m => m.n) * 10) / 10).toLocaleString("pt-BR")} sinistros · ${n("sin")} franqueados` : "")}
+    </div>`;
+  const c = (v, f) => v ? f(v) : `<span style="color:var(--muted)">—</span>`;
+  const tabela = `<div class="card" style="margin-top:14px;border-color:var(--gold)"><h4>Quadro geral por franqueado <small>— ${ym ? rotuloPeriodo(ym) : "ano todo"} · clique no cabeçalho para ordenar</small></h4>
+    <div class="tbl-wrap" style="max-height:560px"><table id="tb-geral"><thead><tr>
+      <th data-k="f">Franqueado</th><th class="n" data-k="pos">Posição campanha</th><th class="n" data-k="real">Realizado campanha</th><th class="n" data-k="conv">Conversão</th>
+      <th class="n" data-k="nr">Não renovadas</th><th class="n" data-k="ca">Canceladas</th><th class="n" data-k="com">Comissões ${ANO}</th><th class="n" data-k="sin">Sinistros pagos</th></tr></thead><tbody></tbody></table></div></div>`;
+  document.querySelector("#aba section").insertAdjacentHTML("beforeend", cards + tabela);
+  const val = {f: x => x.f, pos: x => x.camp ? x.camp.posicao : 999, real: x => x.camp ? x.camp.realizado_2026 : -1, conv: x => x.conv && x.conv.cot ? x.conv.ef / x.conv.cot : -1,
+               nr: x => x.nr ? x.nr.premio : -1, ca: x => x.ca ? x.ca.premio : -1, com: x => x.com ? x.com.v26 : -1e12, sin: x => x.sin ? x.sin.total : -1};
+  let ord = "real", asc = false;
+  const desenhar = () => {
+    const l = lin.slice().sort((a, b) => { const va = val[ord](a), vb = val[ord](b); return (va < vb ? -1 : va > vb ? 1 : 0) * (asc ? 1 : -1); });
+    document.querySelector("#tb-geral tbody").innerHTML = l.map(x => `<tr><td>${esc(x.f)}</td>
+      <td class="n">${c(x.camp, m => `<b>${m.posicao}º</b> <span style="color:var(--muted)">de ${m.participantes}</span>`)}</td>
+      <td class="n">${c(x.camp, m => brl0(m.realizado_2026))}</td>
+      <td class="n">${c(x.conv, m => m.cot ? pct(m.ef / m.cot) : "—")}</td>
+      <td class="n">${c(x.nr, m => `${int(m.qtd)} · ${brl0(m.premio)}`)}</td>
+      <td class="n">${c(x.ca, m => `${int(m.qtd)} · ${brl0(m.premio)}`)}</td>
+      <td class="n">${c(x.com, m => `${brl0(m.v26)} ${indicador(m.v25, m.v26)}`)}</td>
+      <td class="n">${c(x.sin, m => brl0(m.total))}</td></tr>`).join("");
+  };
+  document.querySelectorAll("#tb-geral th").forEach(th => { th.style.cursor = "pointer"; th.onclick = () => {
+    const k = th.dataset.k; asc = ord === k ? !asc : (k === "f" || k === "pos"); ord = k; desenhar(); }; });
+  desenhar();
+}
+
+/* ---------------------------------------------------------------- apólices */
+
+function abaApolices(id) {
+  const cfg = id === "canceladas"
+    ? {a: D.canceladas, T: "Apólices canceladas", rotData: "Data de cancelamento", cor: COR_CANCELADAS}
+    : {a: D.nao_renovadas, T: "Apólices não renovadas", rotData: "Término de vigência", cor: "#072a3c"};
+  const a = cfg.a;
+  if (!a.qtd) return vazio(cfg.T, "Nenhuma apólice no último relatório. 🎉");
+  const sel = MES[id] || "";
+  const lista = filtrarApolices(a, sel);
+  const prod = {};
+  lista.forEach(x => { const p = prod[x.produto] ||= {produto: x.produto, qtd: 0, premio: 0}; p.qtd++; p.premio += x.premio; });
+  const produtos = Object.values(prod).sort((x, y) => y.premio - x.premio);
+  const premio = somaPremio(lista);
+
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(cfg.T, "",
+             filtroMes([...a.por_mes].reverse().map(m => [m.mes, nomeMes(m.mes)]), "Todos os meses", opcoesTrim(a.por_mes.filter(m => m.mes.startsWith(String(ANO))).map(m => +m.mes.slice(5)))))}
+    <div class="grid g5">
+      ${kpi(sel ? rotuloPeriodo(sel) : "Total no relatório", int(lista.length), "apólices", true)}
+      ${kpi("Prêmio líquido", kbrl(premio), "")}
+      ${kpi("Prêmio médio", lista.length ? brl0(premio / lista.length) : "—", "por apólice")}
+      ${kpi("Principal produto", produtos[0] ? `<span style="font-size:19px">${esc(produtos[0].produto)}</span>` : "—", produtos[0] ? `${int(produtos[0].qtd)} apólices · ${brl0(produtos[0].premio)}` : "")}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Prêmio líquido por mês <small>— ${cfg.rotData.toLowerCase()}</small></h4><div id="ch-apo"></div></div>
+      <div class="card"><h4>Por produto / ramo</h4><div class="tbl-wrap" style="max-height:270px"><table><thead><tr><th>Produto</th><th class="n">Qtd</th><th class="n">Prêmio</th></tr></thead><tbody>
+        ${produtos.map(p => `<tr><td>${esc(p.produto)}</td><td class="n">${int(p.qtd)}</td><td class="n">${brl0(p.premio)}</td></tr>`).join("")}
+      </tbody></table></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><b>Apólices</b>
+        <input type="search" id="f-busca" placeholder="Buscar cliente, apólice, seguradora…">
+        <span id="f-tot" style="color:var(--muted);font-size:13px"></span>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>${cfg.rotData}</th>${D.todos ? "<th>Franqueado</th>" : ""}<th>Cliente</th><th>Apólice</th><th>Seguradora</th><th>Produto</th><th class="n">Prêmio líquido</th></tr></thead><tbody id="tb-apo"></tbody></table></div>
+    </div>
+  </section>`;
+  ligarFiltro();
+
+  barras(document.getElementById("ch-apo"), a.por_mes.map(m => mesLabel(m.mes)),
+    [{nome: "Prêmio líquido", cor: cfg.cor, valores: a.por_mes.map(m => m.premio)}],
+    {destaque: idxDestaque(sel, a.por_mes.map(m => +m.mes.slice(5)), a.por_mes.map(m => +m.mes.slice(0, 4))), fmt: brl0,
+     fmtEixo: eixo, tipExtra: i => `${int(a.por_mes[i].qtd)} apólice(s)`});
+
+  const fb = document.getElementById("f-busca");
+  const desenhar = () => {
+    const q = fb.value.trim().toLowerCase();
+    const l = lista.filter(x => !q || [x.cliente, x.apolice, x.seguradora, x.produto, x.franqueado].join(" ").toLowerCase().includes(q));
+    document.getElementById("tb-apo").innerHTML = l.map(x => `<tr><td>${dataBR(x.data)}</td>${D.todos ? `<td>${esc(x.franqueado)}</td>` : ""}<td>${esc(x.cliente)}</td><td>${esc(x.apolice)}</td><td>${esc(x.seguradora)}</td><td>${esc(x.produto)}</td><td class="n">${brl(x.premio)}</td></tr>`).join("")
+      || `<tr><td colspan="7" class="vazio">Nada encontrado.</td></tr>`;
+    document.getElementById("f-tot").textContent = `${int(l.length)} apólice(s) · ${brl0(somaPremio(l))}`;
+  };
+  fb.oninput = desenhar; desenhar();
+}
+
+if (TOKEN) iniciar().catch(() => sair());
+</script>
+</body>
+</html>

@@ -36,7 +36,8 @@ SECRET_KEY = (os.environ.get("SECRET_KEY") or secrets.token_hex(32)).encode()
 SESSAO_HORAS = 12
 TODOS = "__TODOS__"
 TREINAMENTO = "__TREINAMENTO__"  # unidade fictícia p/ ensinar; liberada a qualquer login, nunca somada às reais
-COMUM = ("gerado_em", "atualizado", "fontes", "meta_minima_campanha", "meses_campanha", "trimestres_campanha")
+COMUM = ("gerado_em", "atualizado", "fontes", "meta_minima_campanha", "meses_campanha", "trimestres_campanha",
+         "posicao_repasses", "media_rede_repasses")
 
 app = FastAPI(title="BI Piaseg", docs_url=None, redoc_url=None, openapi_url=None)
 

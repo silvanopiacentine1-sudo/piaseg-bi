@@ -114,6 +114,9 @@ tr.total td{font-weight:600;background:#fafafa;position:sticky;bottom:0;box-shad
 .pizza{display:flex;flex-direction:column;align-items:center;gap:6px}
 .pizza table{width:auto;font-size:13px}.pizza td{border:0;padding:2px 6px}
 .pizza i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.subtemas{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.subtemas button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:500}
+.subtemas button.ativo{background:var(--navy);color:#fff;border-color:var(--navy)}
 .footer{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
 </style>
 </head>
@@ -713,7 +716,57 @@ function abaConversao() {
 
 const TIPOS_COMISSAO = [["novo", "Seguro novo"], ["renovacao", "Renovação"], ["endosso", "Endosso"], ["cancelamento", "Cancelamentos (estornos)"]];
 
+/* Comissões tem 3 subtemas: Recebidas (repasses pagos, mês a mês), À receber e Repasses liberados (fotografias do relatório) */
+let SUBCOM = "recebidas";
+const SUBCOMS = [["recebidas", "Recebidas"], ["areceber", "À receber"], ["liberados", "Repasses liberados"]];
+function barraSubtemas() {
+  return `<div class="subtemas">${SUBCOMS.map(([k, r]) => `<button data-sub="${k}" class="${k === SUBCOM ? "ativo" : ""}">${r}</button>`).join("")}</div>`;
+}
+function ligarSubtemas() {
+  document.querySelectorAll(".subtemas button").forEach(b => b.onclick = () => { SUBCOM = b.dataset.sub; renderAba(); });
+}
+
 function abaComissoes() {
+  if (SUBCOM !== "recebidas") return abaRepasses(SUBCOM);
+  abaComissoesRecebidas();
+  const tit = document.querySelector("#aba .sec-tit");
+  if (tit) tit.insertAdjacentHTML("afterend", barraSubtemas());
+  else document.getElementById("aba").insertAdjacentHTML("afterbegin", barraSubtemas());
+  ligarSubtemas();
+}
+
+/* À receber / Repasses liberados: total do relatório mais recente, comparado à média da rede e à comissão mensal */
+function abaRepasses(sub) {
+  const ar = sub === "areceber";
+  const T = ar ? "Comissões — à receber" : "Comissões — repasses liberados";
+  const valor = ar ? D.comissoes_a_receber : D.comissoes_liberadas;
+  const pos = (D.posicao_repasses || {})[ar ? "a_receber" : "liberados"];
+  const media = (D.media_rede_repasses || {})[ar ? "a_receber" : "liberados"];
+  const quando = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle: "short", timeStyle: "short"}) : "—";
+  const nota = `Posição do relatório em ${quando(pos)} · ${ar ? "valores pendentes de repasse (relatório Repasses Pendentes)" : "valores já liberados para repasse (relatório Repasses Liberados)"}`;
+  if (valor == null && !D.todos) {
+    document.getElementById("aba").innerHTML = `<section>${titulo(T, nota)}${barraSubtemas()}<div class="card vazio">Não há valores ${ar ? "a receber" : "liberados"} para esta unidade no último relatório.</div></section>`;
+    return ligarSubtemas();
+  }
+  // comissão média mensal recebida em 2026 (subtema Recebidas), para dar a dimensão do valor
+  const c26 = (D.comissoes || []).filter(r => r.ano === ANO), meses26 = new Set(c26.map(r => r.mes)).size;
+  const n = D.todos ? D.nomes.filter(f => (D.membros[f][ar ? "comissoes_a_receber" : "comissoes_liberadas"]) != null).length : 1;
+  const mensalUnidade = meses26 ? c26.reduce((a, r) => a + r.valor, 0) / meses26 : 0;  // comissão média por mês em 2026
+  const equivale = mensalUnidade > 0 && valor ? (valor / mensalUnidade).toLocaleString("pt-BR", {maximumFractionDigits: 1}) : null;
+  const comp = !D.todos && media ? (valor >= media ? `<span class="ind ind-up">▲ acima da média</span>` : `<span class="ind ind-down">▼ abaixo da média</span>`) : "";
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, nota)}
+    ${barraSubtemas()}
+    <div class="grid g3">
+      ${kpi(D.todos ? `Total ${ar ? "a receber" : "liberado"} na rede` : `Total ${ar ? "a receber" : "liberado"}`, brl0(valor || 0), D.todos ? `${int(n)} franqueados com valor` : "", true)}
+      ${kpi("Média por franqueado na rede", media ? brl0(media) : "—", comp)}
+      ${kpi("Equivale a", equivale ? `${equivale} ${equivale === "1" ? "mês" : "meses"}` : "—", `da comissão média mensal recebida em ${ANO}${D.todos ? " pela rede" : ""}`)}
+    </div>
+  </section>`;
+  ligarSubtemas();
+}
+
+function abaComissoesRecebidas() {
   const T = "Comissões — sua remuneração";
   const todas = D.comissoes || [];
   if (!todas.length) return vazio(T, "Ainda não há repasses de comissão para esta unidade.");
@@ -1054,6 +1107,8 @@ function agregar(R) {
   A.comissoes = nomes.flatMap(f => (M[f].comissoes || []).map(r => ({...r, franqueado: f})));
   A.sinistros = nomes.flatMap(f => (M[f].sinistros || []).map(r => ({...r, franqueado: f})));
   A.producao = nomes.flatMap(f => (M[f].producao || []).map(r => ({...r, franqueado: f})));
+  A.comissoes_a_receber = nomes.reduce((a, f) => a + (M[f].comissoes_a_receber || 0), 0);
+  A.comissoes_liberadas = nomes.reduce((a, f) => a + (M[f].comissoes_liberadas || 0), 0);
   return A;
 }
 
@@ -1119,6 +1174,14 @@ function anexarTodos() {
     const tot = linhas.reduce((a, x) => a + x.m.premio, 0);
     corpo = linhas.map(({f, m}) => `<tr><td>${esc(f)}</td><td class="n">${int(m.qtd)}</td><td class="n">${brl0(m.premio)}</td><td class="n">${pct(tot ? m.premio / tot : null)}</td></tr>`).join("");
     rodape = `<td>Média por franqueado (${linhas.length})</td><td class="n">${(Math.round(media("qtd") * 10) / 10).toLocaleString("pt-BR")}</td><td class="n">${brl0(media("premio"))}</td><td class="n"></td>`;
+  } else if (ABA === "comissoes" && SUBCOM !== "recebidas") {
+    const k = SUBCOM === "areceber" ? "comissoes_a_receber" : "comissoes_liberadas";
+    const l = D.nomes.filter(f => M[f][k] != null).map(f => ({f, v: M[f][k]})).sort((a, b) => b.v - a.v);
+    const tot = l.reduce((a, x) => a + x.v, 0);
+    linhas.length = 0; l.forEach(x => linhas.push(x));
+    cab = `<th>Franqueado</th><th class="n">${SUBCOM === "areceber" ? "A receber" : "Liberado"}</th><th class="n">% do total</th>`;
+    corpo = l.map(x => `<tr><td>${esc(x.f)}</td><td class="n">${brl0(x.v)}</td><td class="n">${pct(tot ? x.v / tot : null)}</td></tr>`).join("");
+    rodape = `<td>Média por franqueado (${l.length})</td><td class="n">${brl0(l.length ? tot / l.length : 0)}</td><td class="n"></td>`;
   } else if (ABA === "comissoes") {
     linhas.sort((a, b) => b.m.v26 - a.m.v26);
     cab = `<th>Franqueado</th><th class="n">${ANO - 1}</th><th class="n">${ANO}</th><th class="n">Crescimento</th>`;

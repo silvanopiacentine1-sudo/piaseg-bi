@@ -431,6 +431,26 @@ def carregar_conversao(cw):
 # Antes era "Comissões recebidas/25 e /26" — mantido como alternativa.
 PASTA_COMISSOES = next((os.path.join(DRIVE_TI, *n) for n in (("Comissões", "Recebidas"), ("Comissões recebidas",))
                         if os.path.isdir(os.path.join(DRIVE_TI, *n))), os.path.join(DRIVE_TI, "Comissões", "Recebidas"))
+PASTA_A_RECEBER = os.path.join(DRIVE_TI, "Comissões", "À Receber")
+PASTA_LIBERADOS = os.path.join(DRIVE_TI, "Comissões", "Repasses Liberados")
+
+
+def carregar_repasses(pasta, rotulo):
+    """RptRepassesPendentes / RptRepassesLiberados: só VALOR e UNIDADE DE NEGÓCIO, sem data.
+    É uma fotografia do momento: vale o relatório mais recente da pasta; a data do arquivo é a "posição".
+    Retorna (franq -> valor, data_posicao)."""
+    f = _mais_recente(pasta)
+    if not f:
+        print(f"  AVISO: nenhum relatório em '{rotulo}' — subtema fica vazio até a próxima atualização")
+        return {}, None
+    df = pd.read_excel(f)
+    cols = {normalizar(c): c for c in df.columns}
+    df["_F"] = df[cols["UNIDADE DE NEGOCIO"]].apply(canonico)
+    df["_V"] = pd.to_numeric(df[cols["VALOR"]], errors="coerce").fillna(0)
+    tot = df[df["_F"].notna()].groupby("_F")["_V"].sum()
+    return {k: round(float(v), 2) for k, v in tot.items()}, datetime.fromtimestamp(os.path.getmtime(f)).isoformat(timespec="minutes")
+
+
 TIPO_NEGOCIO = {  # coluna NEGÓCIO do RptRepassesPagos (Quiver)
     "N": "novo", "R": "renovacao", "EN": "endosso", "ER": "endosso", "CN": "cancelamento", "CR": "cancelamento",
 }
@@ -496,9 +516,10 @@ def carregar_sinistros():
         if nome.startswith(("~", ".")):
             continue
         mes = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(nome)), None)
-        ano = re.search(r"\b(\d{2}|\d{4})\b", os.path.splitext(nome)[0].replace("(", " ").replace(")", " "))
+        # ano = ÚLTIMO número de 2 ou 4 dígitos do nome: "10.Outubro 26.XLS" -> 26 (o "10." é só a ordem do mês)
+        numeros = re.findall(r"(?<!\d)(\d{4}|\d{2})(?!\d)", os.path.splitext(nome)[0])
         pasta_ano = os.path.basename(os.path.dirname(f))
-        ano = int(ano[1]) if ano else (int(pasta_ano) if pasta_ano.isdigit() else None)
+        ano = int(numeros[-1]) if numeros else (int(pasta_ano) if pasta_ano.isdigit() else None)
         if ano and ano < 100:
             ano += 2000
         if not mes or not ano:
@@ -681,7 +702,8 @@ def gerar_treinamento(base):
                                      "valor": round(v(70000, 120000) * x * y * (1.12 if ano == 2026 else 1), 2), "qtd": rnd.randint(1, 8)})
     return {"nome": "TREINAMENTO (exemplo fictício)", "ficticio": True, "campanha": campanha,
             "nao_renovadas": apolices(40, "termino"), "canceladas": apolices(12, "cancelamento"),
-            "conversao": conversao, "rede_conversao": rede, "comissoes": comissoes, "sinistros": sinistros, "producao": producao}
+            "conversao": conversao, "rede_conversao": rede, "comissoes": comissoes, "sinistros": sinistros, "producao": producao,
+            "comissoes_a_receber": v(18000, 32000), "comissoes_liberadas": v(4000, 9000), "media_rede_repasses": {"a_receber": v(20000, 30000), "liberados": v(3000, 7000)}}
 
 
 # ------------------------------------------------------------------ main
@@ -708,12 +730,14 @@ def main():
     conv, rede = carregar_conversao(cw)
     comis, arq_comis = carregar_comissoes()
     sinis = carregar_sinistros()
+    a_receber, pos_receber = carregar_repasses(PASTA_A_RECEBER, "Comissões/À Receber")
+    liberados, pos_liberados = carregar_repasses(PASTA_LIBERADOS, "Comissões/Repasses Liberados")
     prod = carregar_producao_geral(cw)
 
     # Só entra quem é unidade franqueada (está na campanha ou nos relatórios de apólices) ou tem login vinculado;
     # vendedores soltos da cotação sem unidade identificada ficam de fora e são listados no aviso abaixo.
     vinculados = set(carregar_vinculos()["vinculos"])
-    franqueados = sorted(set(campanha) | set(nao_ren) | set(canc) | set(comis) | set(sinis) | (vinculados & set(conv)))
+    franqueados = sorted(set(campanha) | set(nao_ren) | set(canc) | set(comis) | set(sinis) | set(a_receber) | set(liberados) | (vinculados & set(conv)))
     sem_unidade = sorted(set(conv) - set(franqueados))
     dados = {}
     for f in franqueados:
@@ -726,6 +750,8 @@ def main():
             "conversao": [dict(mes=m, rotulo=MESES[m - 1], **conv_f[m]) for m in sorted(conv_f)],
             "comissoes": comis.get(f, []),
             "sinistros": sinis.get(f, []),
+            "comissoes_a_receber": a_receber.get(f),
+            "comissoes_liberadas": liberados.get(f),
             "producao": prod.get(f, []),
         }
 
@@ -738,6 +764,10 @@ def main():
         # médias da rede (agregadas, sem expor nenhum outro franqueado)
         "rede_conversao": [{"mes": m, "rotulo": MESES[m - 1], **v} for m, v in sorted(rede.items())],
         "franqueados": dados,
+        "posicao_repasses": {"a_receber": pos_receber, "liberados": pos_liberados},
+        # média por franqueado (só entre quem tem valor) — número agregado, não expõe nenhuma unidade
+        "media_rede_repasses": {"a_receber": round(sum(a_receber.values()) / len(a_receber), 2) if a_receber else None,
+                                "liberados": round(sum(liberados.values()) / len(liberados), 2) if liberados else None},
     }
     saida["treinamento"] = gerar_treinamento(saida)
     os.makedirs(os.path.dirname(SAIDA), exist_ok=True)

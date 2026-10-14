@@ -1,6 +1,6 @@
 # BI Piaseg — Business Intelligence do Franqueado
 
-Painel único por franqueado (login do Portal do Franqueado), hoje **em teste local**.
+Painel único por franqueado (login do Portal do Franqueado), **no ar desde 14/10/2026 em https://piaseg-bi.onrender.com**.
 
 **Na web (franqueados):** serviço no Render (ver seção "Publicação"). **No Mac (teste):** clique duplo em `Abrir BI.command`. Ele encerra qualquer BI antigo na porta 8020, relê as planilhas do Drive, gera `data/bi_data.json` e abre http://localhost:8020.
 
@@ -55,7 +55,8 @@ Painel único por franqueado (login do Portal do Franqueado), hoje **em teste lo
 
 ## Publicação (web)
 
-- Render, serviço web `piaseg-bi` (time Piaseg), plano starter, **disco persistente em `/var/data`** (dados + espelho do Drive). Inicia com `python3 server.py`.
+- **Endereço: https://piaseg-bi.onrender.com** · GitHub (público, só código): github.com/silvanopiacentine1-sudo/piaseg-bi, branch `main` com deploy automático a cada push.
+- Render, serviço web `piaseg-bi` (`srv-db7mbio473hc73dt95rg`, região virginia) (time Piaseg), plano starter, **disco persistente em `/var/data`** (dados + espelho do Drive). Inicia com `python3 server.py`.
 - Variáveis de ambiente: `DATA_DIR=/var/data`, `SECRET_KEY` (assina as sessões), `GOOGLE_SERVICE_ACCOUNT_JSON` (conta `campanha-automacao@…`, a mesma da automação da campanha), `BI_VINCULOS_JSON` (login → franqueado e gestores; o vinculos.json NÃO vai para o GitHub), `PYTHON_VERSION=3.11.9`.
 - A conta de serviço precisa ter acesso de **Leitor** às pastas: Arrancada de Vendas, Cotação x Conversão, Apólices não renovadas, Apólices Canceladas, Comissões recebidas e Sinistros.
 - **Atualização automática** (`atualizador.py`, roda dentro do próprio serviço, fuso de MS):
@@ -65,3 +66,6 @@ Painel único por franqueado (login do Portal do Franqueado), hoje **em teste lo
 - O gestor (`admin`) tem o botão **"⟳ Atualizar dados"**: mostra o status, os avisos e permite forçar uma atualização completa.
 - Segurança: sessão assinada de 12 h, bloqueio de 15 min após 8 senhas erradas (por IP e por usuário), cabeçalhos de segurança, sem páginas de documentação da API.
 - O Campanha depende da planilha `Comparativo_Campanha_Jan25_vs_Jan26.xlsx`, gerada pela automação da campanha (Render `piaseg-campanha-cron`). Se essa automação for desligada, o tema Campanha para de atualizar.
+
+### Histórico do git
+O histórico antigo (que continha o vinculos.json com e-mails) ficou só no Mac, na branch `historico-local`. O GitHub recebeu um histórico novo e limpo. Trabalhar sempre na branch `main`.

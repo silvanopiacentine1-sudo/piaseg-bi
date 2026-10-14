@@ -29,7 +29,9 @@ HORA_DIARIA = 10
 DIA_MENSAL = 5
 
 PASTAS_DIARIAS = ["Arrancada de Vendas "]  # atenção: o nome real tem espaço no final
-PASTAS_MENSAIS = ["Cotação x Conversão", "Apólices não renovadas", "Apólices Canceladas", "Comissões recebidas", "Sinistros"]
+PASTAS_MENSAIS = ["Cotação x Conversão", "Apólices não renovadas", "Apólices Canceladas", "Comissões", "Sinistros"]
+# nomes aceitos no Drive para cada pasta (renomeações antigas/novas). O espelho local usa sempre o primeiro nome.
+NOMES_ACEITOS = {"Comissões": ["Comissões", "Comissões recebidas"]}
 IGNORAR_SUBPASTAS = {"backups"}            # backups do Excel da campanha: não são usados pelo BI
 EXTENSOES = (".xls", ".xlsx")
 FOLDER_MIME = "application/vnd.google-apps.folder"
@@ -87,13 +89,37 @@ def _listar(svc, q, campos="files(id, name, mimeType, modifiedTime, size)"):
             return itens
 
 
+ARQ_PASTAS = os.path.join(DATA_DIR, "drive", "pastas.json")
+
+
 def _achar_pasta(svc, nome):
-    seguro = nome.strip().replace("'", "\\'")
-    achados = _listar(svc, f"name contains '{seguro}' and mimeType = '{FOLDER_MIME}' and trashed = false", "files(id, name)")
-    exatos = [f for f in achados if f["name"].strip() == nome.strip()]
+    """Id da pasta no Drive. A busca por nome do Google é instável para pastas recém-compartilhadas,
+    então: 1) usa o id já conhecido (se ainda acessível); 2) procura entre as pastas compartilhadas
+    com a conta (listagem, sem busca por texto); 3) só então busca por nome. Guarda o id achado."""
+    try:
+        with open(ARQ_PASTAS, encoding="utf-8") as fh:
+            ids = json.load(fh)
+    except Exception:
+        ids = {}
+    if ids.get(nome):
+        try:
+            f = svc.files().get(fileId=ids[nome], fields="id, trashed", supportsAllDrives=True).execute()
+            if not f.get("trashed"):
+                return f["id"]
+        except Exception:
+            pass
+    candidatos = _listar(svc, f"sharedWithMe = true and mimeType = '{FOLDER_MIME}' and trashed = false", "files(id, name)")
+    aceitos = {n.strip() for n in NOMES_ACEITOS.get(nome, [nome])}
+    exatos = [f for f in candidatos if f["name"].strip() in aceitos]
+    if not exatos:
+        seguro = nome.strip().replace("'", "\\'")
+        achados = _listar(svc, f"name contains '{seguro}' and mimeType = '{FOLDER_MIME}' and trashed = false", "files(id, name)")
+        exatos = [f for f in achados if f["name"].strip() in aceitos]
     if not exatos:
         raise RuntimeError(f"Pasta '{nome.strip()}' não encontrada no Drive — confirme que foi compartilhada com a conta de serviço.")
-    return exatos[0]["id"]
+    ids[nome] = exatos[0]["id"]
+    _gravar_json(ARQ_PASTAS, ids)
+    return ids[nome]
 
 
 def _ts(rfc3339):

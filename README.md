@@ -21,7 +21,7 @@ Painel único por franqueado (login do Portal do Franqueado), **no ar desde 14/1
 | Cotação x Conversão | `Cotação x Conversão/<N> - <Mês>/` (orçamento calculado + análise de produção) | Mesmos filtros do "Indicador de Conversão"; agosto conferido 100% |
 | Não renovadas | `Apólices não renovadas/` (XLS mais recente) | Mês = término de vigência |
 | Canceladas | `Apólices Canceladas/` (XLS mais recente) | Mês = data de cancelamento; endossos repetidos contam uma vez |
-| Comissões | `Comissões recebidas/25/` e `/26/`, **um arquivo por mês: "Março 26.XLS"** | O relatório não tem data: o mês vem do nome. N=novo, R=renovação, EN/ER=endosso, CN/CR=cancelamento (estorno) |
+| Comissões | `Comissões/Recebidas/25/` e `/26/` (antes `Comissões recebidas/`), **um arquivo por mês: "Março 26.XLS"** | O relatório não tem data: o mês vem do nome. N=novo, R=renovação, EN/ER=endosso, CN/CR=cancelamento (estorno) |
 | Produção geral | Exports "Análise de Produção" da pasta da campanha (`25/`, `26/`), **todos os ramos**, sem as exclusões da campanha. Jan–jun/26 vêm da pasta Cotação x Conversão (sem base 2025) | Downloads diários sem nome de mês entram no mês do download, unidos sem duplicar (`_uniao_sem_duplicar`). Crescimento só nos meses que existem nos dois anos |
 | Sinistros | `Sinistros/`, **um arquivo por mês: "Janeiro 26.XLS"** (jan–set/26 desde 2026-10-11; renomeados pela ordem de download; "RptSinistrosPagos.XLS" é cópia idêntica de janeiro e fica ignorado) | Sem data: mês e ano vêm do nome. Arquivo sem mês no nome é ignorado, com aviso |
 

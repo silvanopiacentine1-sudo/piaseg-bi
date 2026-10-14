@@ -427,7 +427,10 @@ def carregar_conversao(cw):
 
 # ------------------------------------------------------------------ comissões
 
-PASTA_COMISSOES = os.path.join(DRIVE_TI, "Comissões recebidas")
+# estrutura atual: Comissões/Recebidas/25 e /26 (desde 14/10/2026; "À Receber" e "Repasses Liberados" ainda não usados).
+# Antes era "Comissões recebidas/25 e /26" — mantido como alternativa.
+PASTA_COMISSOES = next((os.path.join(DRIVE_TI, *n) for n in (("Comissões", "Recebidas"), ("Comissões recebidas",))
+                        if os.path.isdir(os.path.join(DRIVE_TI, *n))), os.path.join(DRIVE_TI, "Comissões", "Recebidas"))
 TIPO_NEGOCIO = {  # coluna NEGÓCIO do RptRepassesPagos (Quiver)
     "N": "novo", "R": "renovacao", "EN": "endosso", "ER": "endosso", "CN": "cancelamento", "CR": "cancelamento",
 }

@@ -36,7 +36,7 @@ NA_WEB = bool(os.environ.get("PORT"))
 SECRET_KEY = (os.environ.get("SECRET_KEY") or secrets.token_hex(32)).encode()
 SESSAO_HORAS = 12
 TODOS = "__TODOS__"
-TREINAMENTO = "__TREINAMENTO__"  # unidade fictícia p/ ensinar; liberada a qualquer login, nunca somada às reais
+TREINAMENTO = "__TREINAMENTO__"  # unidade fictícia p/ ensinar; só o gestor abre (2026-10-15), nunca somada às reais
 # media_rede_repasses NÃO vai para o franqueado (pedido de 2026-10-14: ele compara só com a própria média)
 COMUM = ("gerado_em", "atualizado", "fontes", "meta_minima_campanha", "meses_campanha", "trimestres_campanha",
          "posicao_repasses")
@@ -200,8 +200,8 @@ def login(d: LoginIn, request: Request):
 def me(authorization: str = Header(default="")):
     p = sessao(authorization)
     p.pop("_sid", None)
-    p["opcao_treinamento"] = TREINAMENTO
     if p["admin"]:
+        p["opcao_treinamento"] = TREINAMENTO
         p["todos"] = sorted(dados()["franqueados"])
         p["opcao_todos"] = TODOS
     return p
@@ -212,6 +212,8 @@ def painel(franqueado: str, authorization: str = Header(default="")):
     p = sessao(authorization)
     base = dados()
     if franqueado == TREINAMENTO:
+        if not p["admin"]:
+            raise HTTPException(403, "O exemplo de treinamento é exclusivo do gestor.")
         return {**{k: base.get(k) for k in COMUM}, **base["treinamento"]}  # inclui a própria "média da rede" fictícia
     if franqueado == TODOS:
         if not p["admin"]:

@@ -559,8 +559,15 @@ def carregar_sinistros():
 
 # ------------------------------------------------------------------ produção geral
 
+# Produção geral: só a corretora Piaseg Consultoria e Corretora (pedido de 2026-10-15). Linhas da "Piaseg Corretora de
+# Seguros" e da "Piaseg Negócios e Corretora de Seguros" ficam fora. Co-corretagem que inclua a Consultoria conta.
+CORRETORA_PRODUCAO = "PIASEG CONSULTORIA E CORRETORA DE SEGUROS LTDA"
+
+
 def _padroniza_producao(df, cw):
     cols = {normalizar(c): c for c in df.columns}
+    if "CORRETORA" in cols:
+        df = df[df[cols["CORRETORA"]].apply(normalizar).str.contains(CORRETORA_PRODUCAO, regex=False)]
     out = pd.DataFrame({
         "PREMIO": pd.to_numeric(df[cols["PREMIO"]], errors="coerce").fillna(0),
         "RAMO": df[cols["RAMO"]].astype(str).str.strip() if "RAMO" in cols else "",

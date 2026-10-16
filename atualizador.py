@@ -193,6 +193,33 @@ def campanha_atualizada_hoje(svc):
 
 # ------------------------------------------------------------------ build
 
+def gerar_privados(dados_rede, avisos):
+    """Painéis privados (hoje só o do Clessio): montados à parte, ficam em dados["privados"] e só o login dono os vê.
+    Se falhar, mantém a versão anterior do painel privado e NÃO derruba o BI da rede. Os avisos não citam o nome
+    (o status é visível ao admin, que não deve ver esse painel)."""
+    anterior = {}
+    try:
+        with open(ARQ_DADOS, encoding="utf-8") as fh:
+            anterior = json.load(fh).get("privados") or {}
+    except Exception:
+        pass
+    novo = os.path.join(DATA_DIR, "privado.novo.json")
+    env = dict(os.environ, BI_DRIVE_TI=ESPELHO, BI_SAIDA=novo)
+    try:
+        proc = subprocess.run([sys.executable, os.path.join(BASE, "build_clessio.py")], env=env, cwd=BASE,
+                              capture_output=True, text=True, timeout=1800)
+        if proc.returncode != 0 or not os.path.exists(novo):
+            raise RuntimeError("build")
+        with open(novo, encoding="utf-8") as fh:
+            p = json.load(fh)
+        os.remove(novo)
+        comum = {k: p.get(k) for k in ("gerado_em", "fontes", "meses_campanha", "trimestres_campanha", "posicao_repasses")}
+        return {"CLESSIO": {**comum, **p["franqueados"]["CLESSIO"], "nome": "CLESSIO", "sem_rede": True}}
+    except Exception:
+        avisos.append("Painel privado: falha ao atualizar — mantida a versão anterior.")
+        return anterior
+
+
 def gerar_dados(mensal_ok):
     """Roda o build em processo separado e só publica se o resultado for coerente com o anterior."""
     novo = os.path.join(DATA_DIR, "bi_data.novo.json")
@@ -212,6 +239,7 @@ def gerar_dados(mensal_ok):
         antes = 0
     if antes and len(dados["franqueados"]) < antes * 0.6:
         raise RuntimeError(f"Resultado suspeito ({len(dados['franqueados'])} franqueados contra {antes} antes) — mantida a versão anterior.")
+    dados["privados"] = gerar_privados(dados, avisos)
     st = ler_status()
     marca = agora().isoformat(timespec="minutes")
     # mensal sem leitura completa ainda: fica sem data (o painel mostra "—") até o primeiro mensal bem-sucedido

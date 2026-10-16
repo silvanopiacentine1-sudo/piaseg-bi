@@ -84,7 +84,34 @@ def usuarios_portal():
         raise HTTPException(503, "Não foi possível consultar os usuários do Portal do Franqueado. Tente novamente.")
 
 
+# ------------------------------------------------------------------ painéis privados (Clessio)
+# BI_PRIVADOS_JSON = {"unidades": {"CLESSIO": ["clessio@piaseg.com.br", "clessio"]},
+#                     "usuarios": {"clessio": {"nome": "...", "sal": "...", "hash": "..."}}}   (senha própria, PBKDF2)
+# Quem entra por um desses logins vê SÓ o painel privado; o admin NÃO vê (nem no seletor, nem por URL, nem nos acessos).
+
+def privados_cfg():
+    try:
+        return json.loads(os.environ.get("BI_PRIVADOS_JSON") or "{}")
+    except Exception:
+        return {}
+
+
+def unidades_privadas_de(usuario):
+    return sorted(u for u, logins in (privados_cfg().get("unidades") or {}).items() if usuario in [l.lower() for l in logins])
+
+
+def senha_privada_ok(usuario, senha):
+    u = (privados_cfg().get("usuarios") or {}).get(usuario)
+    if not u:
+        return None
+    h = hashlib.pbkdf2_hmac("sha256", senha.encode("utf-8"), bytes.fromhex(u["sal"]), 200_000).hex()
+    return u if hmac.compare_digest(h, u["hash"]) else None
+
+
 def perfil(usuario, nome):
+    privadas = unidades_privadas_de(usuario)
+    if privadas:
+        return {"usuario": usuario, "nome": nome, "admin": False, "franqueados": privadas, "privado": True}
     cfg = carregar_vinculos()
     admin = usuario in [a.lower() for a in cfg["admins"]]
     meus = sorted(f for f, logins in cfg["vinculos"].items() if usuario in [l.lower() for l in logins])
@@ -138,8 +165,8 @@ def _agora_iso():
 
 def registrar_sinal(p, sair=False):
     """Abre a visita na entrada, renova a cada sinal da página e fecha no "Sair" (ou pelo último sinal)."""
-    if not p.get("_sid"):
-        return
+    if not p.get("_sid") or p.get("privado"):
+        return  # painel privado não aparece no registro de acessos do admin
     unidades = "Gestor" if p["admin"] else "; ".join(p["franqueados"])
     agora = _agora_iso()
     limite = (atualizador.agora() - atualizador.timedelta(minutes=INATIVO_MIN)).isoformat(timespec="seconds")
@@ -188,6 +215,8 @@ def login(d: LoginIn, request: Request):
     h = hashlib.sha256(d.senha.encode("utf-8")).hexdigest()
     u = next((u for u in usuarios_portal() if str(u.get("u", "")).strip().lower() == usuario and hmac.compare_digest(str(u.get("h", "")), h)), None)
     if not u:
+        u = senha_privada_ok(usuario, d.senha)   # acesso próprio do painel privado
+    if not u:
         _registrar_erro("ip:" + ip, "u:" + usuario)
         raise HTTPException(401, "Usuário ou senha incorretos. Use o mesmo acesso do Portal do Franqueado.")
     p = perfil(usuario, u.get("nome") or usuario)
@@ -211,6 +240,12 @@ def me(authorization: str = Header(default="")):
 def painel(franqueado: str, authorization: str = Header(default="")):
     p = sessao(authorization)
     base = dados()
+    privados = base.get("privados") or {}
+    if franqueado in privados or p.get("privado"):
+        # painel privado: só o login dono (nem o admin); e o dono não vê nenhuma outra unidade
+        if franqueado not in privados or franqueado not in p["franqueados"]:
+            raise HTTPException(403, "Você não tem acesso a esta unidade.")
+        return {**{k: base.get(k) for k in ("atualizado",)}, "rede_conversao": [], **privados[franqueado]}
     if franqueado == TREINAMENTO:
         if not p["admin"]:
             raise HTTPException(403, "O exemplo de treinamento é exclusivo do gestor.")

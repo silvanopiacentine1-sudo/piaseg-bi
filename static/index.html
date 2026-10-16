@@ -407,6 +407,10 @@ function renderAba() {
   document.querySelectorAll("nav.abas a").forEach(l => l.classList.toggle("ativo", l.getAttribute("href") === "#" + ABA));
   // todos os temas são atualizados diariamente às 10h (desde 14/10/2026)
   if (ABA === "acessos") return abaAcessos();
+  const temCampanha = (D.meses_campanha || []).length > 0;   // painel privado (Clessio) não tem campanha
+  const linkCamp = document.querySelector('nav.abas a[href="#campanha"]');
+  if (linkCamp) linkCamp.classList.toggle("hidden", !temCampanha);
+  if (!temCampanha && ABA === "campanha") ABA = "resumo";
   const quando = iso => iso ? new Date(iso).toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"}) : "—";
   const atual = quando((D.atualizado || {}).diario || D.gerado_em);
   const corpo = {resumo: abaResumo, campanha: abaCampanha, producao: abaProducao, conversao: abaConversao,
@@ -497,11 +501,17 @@ function abaResumo() {
   document.getElementById("aba").innerHTML = `<section>
     ${titulo("Resumo", "", filtroMes(ops, "Ano todo", trims))}
     <div class="grid g3">
-      ${D.todos ? kpi("Rede Piaseg", `${D.nomes.length}`, `franqueados no BI${camp ? ` · ${camp.participantes} na campanha ${ym ? rotCamp : ""}` : ""}`, true) :
+      ${!(D.meses_campanha || []).length ? (() => {  // painel privado: sem campanha, o Resumo abre com a Produção geral
+        const {r26, comp, c26, c25} = recorteProducao(D.producao || [], ym);
+        const cv26 = somaV(c26), cv25 = somaV(c25);
+        return kpi(`Produção ${ym ? rotuloPeriodo(ym) : ANO}`, brl0(somaV(r26)), `${int(somaQ(r26))} negócios · todos os ramos`, true)
+          + kpi("Crescimento da produção", comp.length ? crescTxt(cv25, cv26) : "—",
+                comp.length ? `${brl0(cv26)} vs ${brl0(cv25)} em ${ANO - 1} (${faixaMeses(comp)})` : `sem base ${ANO - 1} no período`); })() :
+      D.todos ? kpi("Rede Piaseg", `${D.nomes.length}`, `franqueados no BI${camp ? ` · ${camp.participantes} na campanha ${ym ? rotCamp : ""}` : ""}`, true) :
         kpi(ym ? `Posição na campanha ${rotCamp}` : "Sua posição na campanha", camp ? camp.posicao + "º" : "—",
             camp ? `de ${camp.participantes} franqueados · ${camp.pontos} pontos` : (ym ? "Sem campanha neste período" : "Sem participação na campanha"), true)}
-      ${kpi(`Produção na campanha ${ym ? "(" + rotuloPeriodo(ym) + ")" : "(2026)"}`, camp ? kbrl(camp.realizado_2026) : "—", camp ? varTxt(camp) : "")}
-      ${kpi(`Conversão ${per}`, cot ? pct(ef / cot) : "—", `${int(ef)} efetivados · ${int(cot)} cotações<br>Média da rede: ${rcot ? pct(ref / rcot) : "—"}`)}
+      ${!(D.meses_campanha || []).length ? "" : kpi(`Produção na campanha ${ym ? "(" + rotuloPeriodo(ym) + ")" : "(2026)"}`, camp ? kbrl(camp.realizado_2026) : "—", camp ? varTxt(camp) : "")}
+      ${kpi(`Conversão ${per}`, cot ? pct(ef / cot) : "—", `${int(ef)} efetivados · ${int(cot)} cotações${D.sem_rede ? "" : `<br>Média da rede: ${rcot ? pct(ref / rcot) : "—"}`}`)}
       ${kpi(`Apólices não renovadas ${ym ? "(" + rotuloPeriodo(ym) + ")" : ""}`, int(nr.length), `${brl0(somaPremio(nr))} em prêmio líquido`)}
       ${kpi(`Apólices canceladas ${ym ? "(" + rotuloPeriodo(ym) + ")" : ""}`, int(ca.length), `${brl0(somaPremio(ca))} em prêmio líquido`)}
       ${(() => { const m26 = new Set((D.comissoes || []).filter(r => r.ano === ANO && r.mes).map(r => r.mes)),
@@ -672,11 +682,12 @@ function abaConversao() {
       ${kpi("Cotações", int(cot), "")}
       ${kpi("Negócios efetivados", int(ef), "")}
       ${kpi("Prêmio efetivado", kbrl(premio), "")}
-      ${kpi("Média da rede", rcot ? pct(ref / rcot) : "—", `${int(ref)} efetivados · ${int(rcot)} cotações na rede`)}
+      ${D.sem_rede ? kpi("Prêmio médio efetivado", ef ? brl0(premio / ef) : "—", "por negócio efetivado")
+                   : kpi("Média da rede", rcot ? pct(ref / rcot) : "—", `${int(ref)} efetivados · ${int(rcot)} cotações na rede`)}
     </div>
     <div class="grid g2" style="margin-top:14px">
       <div class="card"><h4>Cotações x Negócios efetivados <small>— por mês</small></h4><div id="ch-conv"></div></div>
-      <div class="card"><h4>% de conversão <small>— sua unidade x média da rede</small></h4><div id="ch-pct"></div></div>
+      <div class="card"><h4>% de conversão <small>— ${D.sem_rede ? "mês a mês" : "sua unidade x média da rede"}</small></h4><div id="ch-pct"></div></div>
     </div>
     <div id="conv-det" style="margin-top:14px"></div>
   </section>`;
@@ -691,7 +702,7 @@ function abaConversao() {
   const rede = Object.fromEntries(D.rede_conversao.map(r => [r.mes, r]));
   linhas(document.getElementById("ch-pct"), cats, [
     {nome:"Sua unidade", cor:"#072a3c", valores: conv.map(m => m.cotacoes ? m.efetivados / m.cotacoes : null)},
-    {nome:"Média da rede", cor:"#a8884a", tracejado:true, valores: conv.map(m => rede[m.mes] && rede[m.mes].cotacoes ? rede[m.mes].efetivados / rede[m.mes].cotacoes : null)},
+    ...(D.sem_rede ? [] : [{nome:"Média da rede", cor:"#a8884a", tracejado:true, valores: conv.map(m => rede[m.mes] && rede[m.mes].cotacoes ? rede[m.mes].efetivados / rede[m.mes].cotacoes : null)}]),
   ]);
 
   const somar = chave => {

@@ -92,9 +92,22 @@ def nome_curto(unidade) -> str:
     return normalizar(str(unidade).split(" - ")[0])
 
 
+# Painéis privados (ex.: Clessio): têm subpastas próprias em cada tema e são montados à parte (build_clessio.py).
+# Nada deles pode entrar no BI da rede — nem por arquivo, nem por nome de unidade.
+PASTAS_PRIVADAS = {"Clessio"}
+UNIDADES_PRIVADAS = ("CLESSIO",)
+
+
+def _em_pasta_privada(caminho):
+    partes = os.path.normpath(caminho).split(os.sep)
+    return any(p in PASTAS_PRIVADAS for p in partes)
+
+
 def canonico(nome, crosswalk=None):
     """Nome de qualquer relatório -> nome do franqueado como está na campanha. None = excluído."""
     if nome is None or (isinstance(nome, float) and pd.isna(nome)):
+        return None
+    if normalizar(nome).startswith(UNIDADES_PRIVADAS):
         return None
     bruto = str(nome).strip()
     if crosswalk and bruto in crosswalk:
@@ -521,6 +534,8 @@ def carregar_sinistros():
     O relatório não tem data, então o mês/ano vem do nome do arquivo. Retorna franq -> [pagamentos]."""
     out, sem_mes = {}, []
     for f in sorted(glob.glob(os.path.join(PASTA_SINISTROS, "**", "*.[xX][lL][sS]*"), recursive=True)):
+        if _em_pasta_privada(f):
+            continue  # subpasta "Clessio" = painel privado, nunca entra nos números da rede
         nome = os.path.basename(f)
         if nome.startswith(("~", ".")):
             continue

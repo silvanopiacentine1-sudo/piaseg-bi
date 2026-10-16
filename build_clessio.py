@@ -625,12 +625,17 @@ def carregar_producao_geral(cw):
     Retorna franq -> [{ano, mes, ramo, seguradora, valor, qtd}]."""
     brutos = {}  # (ano, mes) -> [df padronizado]
     for ano in ("25", "26"):
-        por_mes = {}
+        por_mes, vistos_md5 = {}, set()
         for f in glob.glob(os.path.join(PASTA_CAMPANHA, ano, "*.[xX][lL][sS]*")):
             nome = os.path.basename(f)
             if nome.startswith(("~", ".")):
                 continue
             mes = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(nome)), None)
+            import hashlib
+            h = hashlib.md5(open(f, "rb").read()).hexdigest()
+            if h in vistos_md5:
+                continue  # download repetido (conteúdo idêntico) conta uma vez
+            vistos_md5.add(h)
             try:
                 cru = pd.read_excel(f)
             except Exception:
@@ -661,11 +666,8 @@ def carregar_producao_geral(cw):
                 continue
             brutos[(2000 + int(ano), m_)] = soma
         for mes, dfs in por_mes.items():
-            # padroniza as colunas de TODOS os arquivos antes de unir: o resultado não depende da ordem dos arquivos
-            pads = [_padroniza_producao(d, cw) for d in dfs]
-            for d in pads:
-                d["PREMIO"] = d["PREMIO"].round(2)
-            brutos[(2000 + int(ano), mes)] = pads[0] if len(pads) == 1 else _uniao_sem_duplicar(pads)
+            # arquivos com nome de mês ("outubro 16", "outubro 17"...) = um dia de vendas cada: SOMAM
+            brutos[(2000 + int(ano), mes)] = pd.concat([_padroniza_producao(d, cw) for d in dfs], ignore_index=True)
     for pasta in glob.glob(os.path.join(PASTA_CONVERSAO, "*")):
         m = re.match(r"(\d+)\s*-", os.path.basename(pasta))
         if not m or (2026, int(m[1])) in brutos or not os.path.isdir(pasta):

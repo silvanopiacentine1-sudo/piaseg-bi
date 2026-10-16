@@ -219,9 +219,16 @@ RAMOS_EXCLUIDOS_CAMPANHA = {  # mesma lista de montar_comparativo.py (pipeline d
 MES_ABREV = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 
+def _md5(caminho):
+    import hashlib
+    with open(caminho, "rb") as fh:
+        return hashlib.md5(fh.read()).hexdigest()
+
+
 def _ler_fontes(pasta):
-    """Todos os exports de produção da pasta (25/ ou 26/) com colunas padronizadas."""
-    fontes = []
+    """Todos os exports de produção da pasta (25/ ou 26/) com colunas padronizadas.
+    Inclui a SOMA dos arquivos nomeados de um mesmo mês (arquivos diários "outubro 16", "outubro 17"...)."""
+    fontes, diarios, diarios_vistos = [], {}, set()
     for f in glob.glob(os.path.join(pasta, "*.[xX][lL][sS]*")):
         if os.path.basename(f).startswith(("~", ".")):
             continue
@@ -239,10 +246,17 @@ def _ler_fontes(pasta):
         df["PREMIO"] = pd.to_numeric(df["PREMIO"], errors="coerce").fillna(0)
         dt = pd.to_datetime(df["INICIO"], errors="coerce")
         fontes.append(df)
+        mes_nome = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(os.path.basename(f))), None)
+        if mes_nome and _md5(f) not in diarios_vistos:
+            diarios_vistos.add(_md5(f))
+            diarios.setdefault(mes_nome, []).append(df)
         for m in range(1, 13):  # export diário sem nome de mês: recorte por mês também é candidato
             sub = df[dt.dt.month == m]
             if 0 < len(sub) < len(df):
                 fontes.append(sub)
+    for partes in diarios.values():
+        if len(partes) > 1:
+            fontes.insert(0, pd.concat(partes, ignore_index=True))
     return fontes
 
 
@@ -617,24 +631,28 @@ def carregar_producao_geral(cw):
     Retorna franq -> [{ano, mes, ramo, seguradora, valor, qtd}]."""
     brutos = {}  # (ano, mes) -> [df padronizado]
     for ano in ("25", "26"):
-        por_mes = {}
-        for f in glob.glob(os.path.join(PASTA_CAMPANHA, ano, "*.[xX][lL][sS]*")):
+        nomeados, sem_nome, vistos = {}, {}, set()
+        for f in sorted(glob.glob(os.path.join(PASTA_CAMPANHA, ano, "*.[xX][lL][sS]*"))):
             nome = os.path.basename(f)
-            if nome.startswith(("~", ".")):
-                continue
+            if nome.startswith(("~", ".")) or _md5(f) in vistos:
+                continue  # download repetido (conteúdo idêntico) conta uma vez
+            vistos.add(_md5(f))
             mes = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(nome)), None)
-            if mes is None:
-                quando = datetime.fromtimestamp(os.path.getmtime(f), FUSO)
-                if quando.year != 2000 + int(ano):
-                    continue
-                mes = quando.month
             try:
                 cru = pd.read_excel(f)
             except Exception:
                 continue
-            por_mes.setdefault(mes, []).append(cru)
-        for mes, dfs in por_mes.items():
-            # padroniza as colunas de TODOS os arquivos antes de unir: o resultado não depende da ordem dos arquivos
+            if mes is not None:
+                nomeados.setdefault(mes, []).append(cru)   # "outubro 16", "outubro 17"... = um dia cada: SOMAM
+            else:
+                quando = datetime.fromtimestamp(os.path.getmtime(f), FUSO)
+                if quando.year == 2000 + int(ano):
+                    sem_nome.setdefault(quando.month, []).append(cru)
+        for mes, dfs in nomeados.items():
+            brutos[(2000 + int(ano), mes)] = pd.concat([_padroniza_producao(d, cw) for d in dfs], ignore_index=True)
+        for mes, dfs in sem_nome.items():
+            if mes in nomeados:
+                continue  # o mês já tem arquivos nomeados: os downloads sem nome não entram (evita contar em dobro)
             pads = [_padroniza_producao(d, cw) for d in dfs]
             for d in pads:
                 d["PREMIO"] = d["PREMIO"].round(2)

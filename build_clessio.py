@@ -497,8 +497,14 @@ def carregar_comissoes():
     import hashlib
     out, arquivos, vistos = {}, {}, set()
     raiz = os.path.join(DRIVE_TI, "Comissões", SUB)
-    fontes = [(ano, f) for ano in ("25", "26") for base in {PASTA_COMISSOES, raiz}
-              for f in sorted(glob.glob(os.path.join(base, ano, "*.[xX][lL][sS]*")))]
+    # subpastas de ANO ("25", "26", "2025", "2026"), na raiz ou dentro de Recebidas, e arquivos soltos na raiz
+    fontes = []
+    for base in {PASTA_COMISSOES, raiz}:
+        for sub in sorted(glob.glob(os.path.join(base, "*"))):
+            nome_sub = os.path.basename(sub)
+            if os.path.isdir(sub) and re.fullmatch(r"\d{2}|\d{4}", nome_sub):
+                ano = nome_sub[-2:]
+                fontes += [(ano, f) for f in sorted(glob.glob(os.path.join(sub, "*.[xX][lL][sS]*")))]
     fontes += [(None, f) for f in sorted(glob.glob(os.path.join(raiz, "*.[xX][lL][sS]*")))]
     for ano_pasta, f in fontes:
         if os.path.basename(f).startswith(("~", ".")):

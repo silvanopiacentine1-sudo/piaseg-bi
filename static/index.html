@@ -794,22 +794,27 @@ function abaRepasses(sub) {
    anterior apenas se houver dados dele. Quando o relatório trouxer NEGÓCIO/CÉLULA, a aba completa volta sozinha. */
 function abaComissoesSimples(T, todas) {
   const A = ANO, B = ANO - 1;
-  const mesesA = [...new Set(todas.filter(r => r.ano === A && r.mes).map(r => r.mes))].sort((a, b) => a - b);
+  const mesesDe = ano => [...new Set(todas.filter(r => r.ano === ano && r.mes).map(r => r.mes))].sort((a, b) => a - b);
+  const mesesA = mesesDe(A), mesesB = mesesDe(B);
+  const mesesTodos = [...new Set([...mesesA, ...mesesB])].sort((a, b) => a - b);
   const sel = MES.comissoes || "";
   const porMes = (ano, m) => todas.filter(r => r.ano === ano && r.mes === m).reduce((a, r) => a + r.valor, 0);
-  const noSel = r => !sel || noPeriodo(sel, r.mes);
-  const tA = todas.filter(r => r.ano === A && noSel(r)).reduce((a, r) => a + r.valor, 0);
   const mesesSel = mesesA.filter(m => !sel || noPeriodo(sel, m));
-  const tB = todas.filter(r => r.ano === B && mesesSel.includes(r.mes)).reduce((a, r) => a + r.valor, 0);
-  const temB = todas.some(r => r.ano === B);
+  const tA = mesesSel.reduce((a, m) => a + porMes(A, m), 0);
+  // comparação justa: só os meses que existem nos DOIS anos
+  const comp = mesesSel.filter(m => mesesB.includes(m));
+  const cA = comp.reduce((a, m) => a + porMes(A, m), 0), cB = comp.reduce((a, m) => a + porMes(B, m), 0);
+  const temB = mesesB.length > 0;
   const valores = mesesSel.map(m => [m, porMes(A, m)]);
   const melhor = valores.reduce((x, y) => (y[1] > (x ? x[1] : -1) ? y : x), null);
   const ultimo = valores[valores.length - 1];
+  const notaB = !temB ? ` · sem dados de ${B} para comparar` : ` · ${B} disponível de ${faixaMeses(mesesB)}: o crescimento compara só os meses que existem nos dois anos`;
   document.getElementById("aba").innerHTML = `<section>
-    ${titulo(T, `Repasses pagos por mês (data do pagamento)${temB ? "" : ` · sem dados de ${B} para comparar`} · o relatório não informa o tipo de negócio nem o ramo`,
+    ${titulo(T, `Repasses pagos por mês (data do pagamento)${notaB} · o relatório não informa o tipo de negócio nem o ramo`,
              filtroMes([...mesesA].reverse().map(m => [String(m), MESES_LONGOS[m - 1] + "/" + A]), "Ano todo", opcoesTrim(mesesA)))}
     <div class="grid g5">
-      ${kpi(`Total recebido ${sel ? rotuloPeriodo(sel) : faixaMeses(mesesA)}`, brl0(tA), temB ? `${indicador(tB, tA)} vs ${brl0(tB)} em ${B}` : `${int(mesesSel.length)} ${mesesSel.length === 1 ? "mês" : "meses"} com repasse`, true)}
+      ${kpi(`Total recebido ${sel ? rotuloPeriodo(sel) : faixaMeses(mesesA) + "/" + String(A).slice(2)}`, brl0(tA), `${int(mesesSel.length)} ${mesesSel.length === 1 ? "mês" : "meses"} com repasse`, true)}
+      ${kpi("Crescimento", comp.length ? crescTxt(cB, cA) : "—", comp.length ? `${brl0(cA)} vs ${brl0(cB)} em ${B} (${faixaMeses(comp)})` : `sem ${B} no mesmo período`)}
       ${kpi("Média mensal", mesesSel.length ? brl0(tA / mesesSel.length) : "—", "no período")}
       ${kpi("Melhor mês", melhor ? brl0(melhor[1]) : "—", melhor ? MESES_LONGOS[melhor[0] - 1] + "/" + A : "")}
       ${kpi("Último mês", ultimo ? brl0(ultimo[1]) : "—", ultimo ? MESES_LONGOS[ultimo[0] - 1] + "/" + A : "")}
@@ -817,16 +822,17 @@ function abaComissoesSimples(T, todas) {
     <div class="grid g2" style="margin-top:14px">
       <div class="card"><h4>Total recebido por mês <small>— ${temB ? B + " x " + A : A}</small></h4><div id="ch-com-simples"></div></div>
       <div class="card"><h4>Mês a mês</h4><div class="tbl-wrap" style="max-height:340px"><table><thead><tr><th>Mês</th>${temB ? `<th class="n">${B}</th>` : ""}<th class="n">${A}</th>${temB ? `<th class="n">Crescimento</th>` : ""}</tr></thead><tbody>
-        ${mesesA.map(m => `<tr${sel && !noPeriodo(sel, m) ? ' style="opacity:.4"' : ""}><td>${MESES_LONGOS[m - 1]}</td>${temB ? `<td class="n">${brl0(porMes(B, m))}</td>` : ""}<td class="n">${brl0(porMes(A, m))}</td>${temB ? `<td class="n">${indicador(porMes(B, m), porMes(A, m))}</td>` : ""}</tr>`).join("")}
-        <tr class="total"><td>Total ${sel ? rotuloPeriodo(sel) : ""}</td>${temB ? `<td class="n">${brl0(tB)}</td>` : ""}<td class="n">${brl0(tA)}</td>${temB ? `<td class="n">${indicador(tB, tA)}</td>` : ""}</tr>
+        ${mesesTodos.map(m => { const a = porMes(A, m), b = porMes(B, m), ambos = mesesA.includes(m) && mesesB.includes(m);
+          return `<tr${sel && !noPeriodo(sel, m) ? ' style="opacity:.4"' : ""}><td>${MESES_LONGOS[m - 1]}</td>${temB ? `<td class="n">${mesesB.includes(m) ? brl0(b) : "—"}</td>` : ""}<td class="n">${mesesA.includes(m) ? brl0(a) : "—"}</td>${temB ? `<td class="n">${ambos ? indicador(b, a) : ""}</td>` : ""}</tr>`; }).join("")}
+        <tr class="total"><td>Total</td>${temB ? `<td class="n">${brl0(mesesB.reduce((x, m) => x + porMes(B, m), 0))}</td>` : ""}<td class="n">${brl0(mesesA.reduce((x, m) => x + porMes(A, m), 0))}</td>${temB ? `<td class="n"></td>` : ""}</tr>
       </tbody></table></div></div>
     </div>
   </section>`;
   ligarFiltro();   // a barra de subtemas é colocada por abaComissoes()
-  barras(document.getElementById("ch-com-simples"), mesesA.map(m => MES_CURTO[m - 1]),
-    (temB ? [{nome: String(B), cor: "var(--verde-claro)", valores: mesesA.map(m => porMes(B, m))}] : [])
-      .concat([{nome: String(A), cor: "#072a3c", valores: mesesA.map(m => porMes(A, m))}]),
-    {destaque: idxDestaque(sel, mesesA), fmt: brl0, fmtEixo: eixo});
+  barras(document.getElementById("ch-com-simples"), mesesTodos.map(m => MES_CURTO[m - 1]),
+    (temB ? [{nome: String(B), cor: "var(--verde-claro)", valores: mesesTodos.map(m => porMes(B, m))}] : [])
+      .concat([{nome: String(A), cor: "#072a3c", valores: mesesTodos.map(m => porMes(A, m))}]),
+    {destaque: idxDestaque(sel, mesesTodos), fmt: brl0, fmtEixo: eixo});
 }
 
 function abaComissoesRecebidas() {

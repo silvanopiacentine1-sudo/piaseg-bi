@@ -488,35 +488,52 @@ TIPO_NEGOCIO = {  # coluna NEGÓCIO do RptRepassesPagos (Quiver)
 
 
 def carregar_comissoes():
-    """Repasses pagos (pastas 25/ e 26/). O relatório atual não tem data: o mês vem do nome do
-    arquivo ("Março 26.XLS") ou de uma coluna de data, se o export passar a trazer; sem isso,
-    o arquivo conta como o período inteiro do ano (mes = None).
-    Retorna franq -> [{ano, mes, tipo, celula, valor, qtd}]."""
-    out, arquivos = {}, {}
-    for ano in ("25", "26"):
-        for f in sorted(glob.glob(os.path.join(PASTA_COMISSOES, ano, "*.[xX][lL][sS]*"))):
-            if os.path.basename(f).startswith(("~", ".")):
+    """Repasses pagos do Clessio. Aceita:
+    - arquivos em Comissões/Clessio/Recebidas/25 e /26 (ou Comissões/Clessio/25 e /26), um por mês ("Março 26.XLS");
+    - arquivos direto em Comissões/Clessio (ex.: "RptRepassesPagos.XLS", um por colaborador), desde que tragam
+      a coluna DATA DO PAGAMENTO: o ANO e o MÊS saem da data de cada pagamento.
+    Coluna de unidade pode ser COLABORADOR. Sem NEGÓCIO/CÉLULA, entra como "outros" (só o total).
+    Arquivo idêntico (download repetido) conta uma vez. Retorna franq -> [{ano, mes, tipo, celula, valor, qtd}]."""
+    import hashlib
+    out, arquivos, vistos = {}, {}, set()
+    raiz = os.path.join(DRIVE_TI, "Comissões", SUB)
+    fontes = [(ano, f) for ano in ("25", "26") for base in {PASTA_COMISSOES, raiz}
+              for f in sorted(glob.glob(os.path.join(base, ano, "*.[xX][lL][sS]*")))]
+    fontes += [(None, f) for f in sorted(glob.glob(os.path.join(raiz, "*.[xX][lL][sS]*")))]
+    for ano_pasta, f in fontes:
+        if os.path.basename(f).startswith(("~", ".")):
+            continue
+        h = hashlib.md5(open(f, "rb").read()).hexdigest()
+        if h in vistos:
+            continue
+        vistos.add(h)
+        df = pd.read_excel(f)
+        cols = {normalizar(c): c for c in df.columns}
+        mes_nome = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(os.path.basename(f))), None)
+        col_data = next((c for n, c in cols.items() if "DATA" in n or "PAGAMENTO" in n), None)
+        if col_data:
+            dt = pd.to_datetime(df[col_data], errors="coerce", dayfirst=True)
+            df["_MES"], df["_ANO"] = dt.dt.month, dt.dt.year
+        else:
+            if ano_pasta is None:
+                print(f"  AVISO: comissões '{os.path.basename(f)}' sem data do pagamento e fora das pastas 25/26 — ignorado")
                 continue
-            df = pd.read_excel(f)
-            cols = {normalizar(c): c for c in df.columns}
-            mes_nome = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(os.path.basename(f))), None)
-            col_data = next((c for n, c in cols.items() if "DATA" in n or "PAGAMENTO" in n), None)
-            df["_MES"] = pd.to_datetime(df[col_data], errors="coerce", dayfirst=True).dt.month if col_data else mes_nome
-            df["_F"] = df[cols[_col_unidade(cols)]].apply(canonico)
-            df["_T"] = (df[cols["NEGOCIO"]].astype(str).str.strip().str.upper().map(TIPO_NEGOCIO).fillna("outros")
-                        if "NEGOCIO" in cols else "outros")   # sem a coluna NEGÓCIO não dá para separar novo/renovação
-            df["_V"] = pd.to_numeric(df[cols["VALOR"]], errors="coerce").fillna(0)
-            df["_C"] = df[cols["CELULA"]].astype(str).str.strip() if "CELULA" in cols else "—"
-            df = df[df["_F"].notna()]
-            arquivos.setdefault(ano, []).append(os.path.basename(f))
-            g = df.groupby(["_F", "_MES", "_T", "_C"], dropna=False)["_V"].agg(["sum", "count"])
-            for (franq, mes, tipo, cel), r in g.iterrows():
-                out.setdefault(franq, []).append({
-                    "ano": 2000 + int(ano), "mes": None if pd.isna(mes) else int(mes),
-                    "tipo": tipo, "celula": cel, "valor": round(float(r["sum"]), 2), "qtd": int(r["count"]),
-                })
+            df["_MES"], df["_ANO"] = mes_nome, 2000 + int(ano_pasta)
+        df["_F"] = df[cols[_col_unidade(cols)]].apply(canonico)
+        df["_T"] = (df[cols["NEGOCIO"]].astype(str).str.strip().str.upper().map(TIPO_NEGOCIO).fillna("outros")
+                    if "NEGOCIO" in cols else "outros")   # sem a coluna NEGÓCIO não dá para separar novo/renovação
+        df["_V"] = pd.to_numeric(df[cols["VALOR"]], errors="coerce").fillna(0)
+        df["_C"] = df[cols["CELULA"]].astype(str).str.strip() if "CELULA" in cols else "—"
+        df = df[df["_F"].notna() & df["_ANO"].notna()]
+        arquivos.setdefault(str(ano_pasta or "raiz"), []).append(os.path.basename(f))
+        g = df.groupby(["_F", "_ANO", "_MES", "_T", "_C"], dropna=False)["_V"].agg(["sum", "count"])
+        for (franq, ano, mes, tipo, cel), r in g.iterrows():
+            out.setdefault(franq, []).append({
+                "ano": int(ano), "mes": None if pd.isna(mes) else int(mes),
+                "tipo": tipo, "celula": cel, "valor": round(float(r["sum"]), 2), "qtd": int(r["count"]),
+            })
     tem_mes = any(r["mes"] for lst in out.values() for r in lst)
-    if not tem_mes:
+    if out and not tem_mes:
         print("  AVISO: comissões sem informação de mês (relatório sem data e arquivos sem nome de mês) — filtro mensal indisponível")
     return out, arquivos
 

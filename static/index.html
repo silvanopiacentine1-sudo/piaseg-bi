@@ -789,10 +789,51 @@ function abaRepasses(sub) {
   ligarSubtemas();
 }
 
+/* relatório sem tipo de negócio e sem ramo (ex.: Clessio, que exporta só valor + data do pagamento):
+   mostra só o que os dados permitem — total, média mensal, melhor e último mês e o mês a mês; compara com o ano
+   anterior apenas se houver dados dele. Quando o relatório trouxer NEGÓCIO/CÉLULA, a aba completa volta sozinha. */
+function abaComissoesSimples(T, todas) {
+  const A = ANO, B = ANO - 1;
+  const mesesA = [...new Set(todas.filter(r => r.ano === A && r.mes).map(r => r.mes))].sort((a, b) => a - b);
+  const sel = MES.comissoes || "";
+  const porMes = (ano, m) => todas.filter(r => r.ano === ano && r.mes === m).reduce((a, r) => a + r.valor, 0);
+  const noSel = r => !sel || noPeriodo(sel, r.mes);
+  const tA = todas.filter(r => r.ano === A && noSel(r)).reduce((a, r) => a + r.valor, 0);
+  const mesesSel = mesesA.filter(m => !sel || noPeriodo(sel, m));
+  const tB = todas.filter(r => r.ano === B && mesesSel.includes(r.mes)).reduce((a, r) => a + r.valor, 0);
+  const temB = todas.some(r => r.ano === B);
+  const valores = mesesSel.map(m => [m, porMes(A, m)]);
+  const melhor = valores.reduce((x, y) => (y[1] > (x ? x[1] : -1) ? y : x), null);
+  const ultimo = valores[valores.length - 1];
+  document.getElementById("aba").innerHTML = `<section>
+    ${titulo(T, `Repasses pagos por mês (data do pagamento)${temB ? "" : ` · sem dados de ${B} para comparar`} · o relatório não informa o tipo de negócio nem o ramo`,
+             filtroMes([...mesesA].reverse().map(m => [String(m), MESES_LONGOS[m - 1] + "/" + A]), "Ano todo", opcoesTrim(mesesA)))}
+    <div class="grid g5">
+      ${kpi(`Total recebido ${sel ? rotuloPeriodo(sel) : faixaMeses(mesesA)}`, brl0(tA), temB ? `${indicador(tB, tA)} vs ${brl0(tB)} em ${B}` : `${int(mesesSel.length)} ${mesesSel.length === 1 ? "mês" : "meses"} com repasse`, true)}
+      ${kpi("Média mensal", mesesSel.length ? brl0(tA / mesesSel.length) : "—", "no período")}
+      ${kpi("Melhor mês", melhor ? brl0(melhor[1]) : "—", melhor ? MESES_LONGOS[melhor[0] - 1] + "/" + A : "")}
+      ${kpi("Último mês", ultimo ? brl0(ultimo[1]) : "—", ultimo ? MESES_LONGOS[ultimo[0] - 1] + "/" + A : "")}
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card"><h4>Total recebido por mês <small>— ${temB ? B + " x " + A : A}</small></h4><div id="ch-com-simples"></div></div>
+      <div class="card"><h4>Mês a mês</h4><div class="tbl-wrap" style="max-height:340px"><table><thead><tr><th>Mês</th>${temB ? `<th class="n">${B}</th>` : ""}<th class="n">${A}</th>${temB ? `<th class="n">Crescimento</th>` : ""}</tr></thead><tbody>
+        ${mesesA.map(m => `<tr${sel && !noPeriodo(sel, m) ? ' style="opacity:.4"' : ""}><td>${MESES_LONGOS[m - 1]}</td>${temB ? `<td class="n">${brl0(porMes(B, m))}</td>` : ""}<td class="n">${brl0(porMes(A, m))}</td>${temB ? `<td class="n">${indicador(porMes(B, m), porMes(A, m))}</td>` : ""}</tr>`).join("")}
+        <tr class="total"><td>Total ${sel ? rotuloPeriodo(sel) : ""}</td>${temB ? `<td class="n">${brl0(tB)}</td>` : ""}<td class="n">${brl0(tA)}</td>${temB ? `<td class="n">${indicador(tB, tA)}</td>` : ""}</tr>
+      </tbody></table></div></div>
+    </div>
+  </section>`;
+  ligarFiltro();   // a barra de subtemas é colocada por abaComissoes()
+  barras(document.getElementById("ch-com-simples"), mesesA.map(m => MES_CURTO[m - 1]),
+    (temB ? [{nome: String(B), cor: "var(--verde-claro)", valores: mesesA.map(m => porMes(B, m))}] : [])
+      .concat([{nome: String(A), cor: "#072a3c", valores: mesesA.map(m => porMes(A, m))}]),
+    {destaque: idxDestaque(sel, mesesA), fmt: brl0, fmtEixo: eixo});
+}
+
 function abaComissoesRecebidas() {
   const T = "Comissões — sua remuneração";
   const todas = D.comissoes || [];
   if (!todas.length) return vazio(T, "Ainda não há repasses de comissão para esta unidade.");
+  if (todas.every(r => r.tipo === "outros")) return abaComissoesSimples(T, todas);
   // meses com repasse em 2026; 2025 é comparado só nos mesmos meses (período equivalente)
   const mesesDisp = [...new Set(todas.filter(r => r.mes && r.ano === ANO).map(r => r.mes))].sort((a, b) => b - a);
   const sel = MES.comissoes || "";

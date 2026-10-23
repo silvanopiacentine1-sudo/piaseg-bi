@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Manual do BI Piaseg</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+@page :first { margin: 0; }
+:root { --navy:#072a3c; --gold:#c2a360; --gold-2:#a8884a; --ink:#1d2a33; --muted:#5f6b74; --line:#e3e6ea; --bg:#f4f5f7; --up:#15803d; --down:#b91c1c; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: Jost, Arial, sans-serif; color: var(--ink); font-size: 10.6pt; line-height: 1.5; }
+h1, h2 { font-family: "Playfair Display", serif; font-weight: 600; color: var(--navy); }
+h2 { font-size: 19pt; margin: 0 0 4mm; padding-bottom: 2mm; border-bottom: 2px solid var(--gold); break-after: avoid; }
+h2 .n { color: var(--gold-2); margin-right: 3mm; }
+h3 { font-size: 11.5pt; color: var(--navy); margin: 5mm 0 1.5mm; break-after: avoid; }
+p { margin: 0 0 2.5mm; }
+ul { margin: 0 0 3mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; }
+b { color: var(--navy); }
+.sec { break-before: page; }
+.shot { margin: 3mm 0 4mm; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; break-inside: avoid; }
+.shot img { display: block; width: 100%; }
+.cap { font-size: 8.6pt; color: var(--muted); margin: -2.5mm 0 4mm; }
+.box { background: var(--bg); border-left: 3px solid var(--gold); border-radius: 4px; padding: 3mm 4mm; margin: 3mm 0 4mm; break-inside: avoid; }
+.box.alerta { border-left-color: var(--navy); }
+table.t { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 10pt; break-inside: avoid; }
+table.t td, table.t th { padding: 2mm 2.5mm; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+table.t th { color: var(--muted); font-weight: 500; font-size: 9pt; }
+.pill { display: inline-block; padding: 0.4mm 2.2mm; border-radius: 10px; font-weight: 600; font-size: 9.5pt; white-space: nowrap; }
+.up { background: #dcf3e3; color: var(--up); } .down { background: #fde2e1; color: var(--down); } .eq { background: #eceef0; color: var(--muted); }
+.sw { display: inline-block; width: 3.2mm; height: 3.2mm; border-radius: 1mm; vertical-align: -0.4mm; margin-right: 1.5mm; }
+.duas { display: grid; grid-template-columns: 1fr 52mm; gap: 7mm; align-items: start; }
+.url { font-weight: 600; color: var(--navy); font-size: 12pt; }
+
+/* capa */
+.capa { height: 297mm; background: var(--navy); color: #fff; padding: 30mm 22mm; display: flex; flex-direction: column; }
+.capa img { width: 62mm; }
+.capa .meio { margin-top: auto; }
+.capa .tag { color: var(--gold); letter-spacing: 3px; font-size: 10pt; text-transform: uppercase; font-weight: 500; }
+.capa h1 { color: #fff; font-size: 40pt; line-height: 1.1; margin: 4mm 0 5mm; font-weight: 400; }
+.capa h1 span { color: var(--gold); }
+.capa .sub { font-size: 14pt; color: #d6dde2; max-width: 130mm; }
+.capa .rod { margin-top: auto; border-top: 1px solid rgba(194,163,96,.5); padding-top: 5mm; font-size: 10pt; color: #b9c4cb; display: flex; justify-content: space-between; }
+
+/* sumário */
+.sum { list-style: none; padding: 0; margin: 2mm 0 0; }
+.sum li { display: flex; gap: 3mm; padding: 2.4mm 0; border-bottom: 1px dotted #cfd4d8; margin: 0; }
+.sum .n { color: var(--gold-2); font-weight: 600; width: 7mm; }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <img src="img/logo-piaseg-branco.png" alt="Piaseg Seguros Franchising">
+  <div class="meio">
+    <div class="tag">Guia do franqueado</div>
+    <h1>Manual do <span>BI Piaseg</span></h1>
+    <div class="sub">Como acessar e interpretar os números da sua unidade: campanha, produção, conversão, apólices, comissões e sinistros.</div>
+  </div>
+  <div class="rod"><span>Piaseg Seguros Franchising</span><span>Versão outubro/2026</span></div>
+</section>
+
+<section>
+  <h2>Sumário</h2>
+  <ul class="sum">
+    <li><span class="n">1</span>O que é o BI Piaseg</li>
+    <li><span class="n">2</span>Como acessar</li>
+    <li><span class="n">3</span>Conhecendo a tela</li>
+    <li><span class="n">4</span>Como ler os indicadores</li>
+    <li><span class="n">5</span>Resumo</li>
+    <li><span class="n">6</span>Campanha — Arrancada de Vendas</li>
+    <li><span class="n">7</span>Produção geral</li>
+    <li><span class="n">8</span>Cotação x Conversão</li>
+    <li><span class="n">9</span>Apólices não renovadas e canceladas</li>
+    <li><span class="n">10</span>Comissões</li>
+    <li><span class="n">11</span>Sinistros</li>
+    <li><span class="n">12</span>Quando os dados são atualizados</li>
+    <li><span class="n">13</span>Privacidade e segurança</li>
+    <li><span class="n">14</span>Dúvidas frequentes</li>
+  </ul>
+  <div class="box" style="margin-top:8mm">
+    <b>Sobre as imagens deste manual:</b> todas as telas mostram uma <b>unidade de exemplo com números fictícios</b>, criada só para treinamento. Por isso aparece a faixa vermelha “DADOS FICTÍCIOS” no topo. No seu acesso, essa faixa não aparece e os números são os da sua unidade.
+  </div>
+</section>
+
+<section class="sec">
+  <h2><span class="n">1</span>O que é o BI Piaseg</h2>
+  <p>O <b>BI Piaseg</b> (Business Intelligence do Franqueado) reúne em um só lugar os principais números da sua unidade. Antes, essas informações vinham em planilhas e relatórios separados. No BI, elas aparecem organizadas por tema, com gráficos e o comparativo com o ano anterior.</p>
+  <p>Com ele você acompanha:</p>
+  <ul>
+    <li>sua posição e seu resultado na <b>campanha de vendas</b>;</li>
+    <li>a <b>produção geral</b> de todos os ramos e seguradoras;</li>
+    <li>quantas cotações viraram negócio (<b>conversão</b>);</li>
+    <li>as apólices <b>não renovadas</b> e <b>canceladas</b>, cliente a cliente;</li>
+    <li>as <b>comissões</b> recebidas, a receber e liberadas;</li>
+    <li>os <b>sinistros</b> pagos aos clientes da sua carteira.</li>
+  </ul>
+  <p>Todos os números vêm dos relatórios oficiais da franqueadora e são atualizados automaticamente. Você não precisa enviar nada nem instalar nada.</p>
+
+  <h2 style="margin-top:9mm"><span class="n">2</span>Como acessar</h2>
+  <div class="duas">
+    <div>
+      <p>Abra o navegador (Chrome, Safari, Edge…) no computador ou no celular e acesse:</p>
+      <p class="url">piaseg-bi.onrender.com</p>
+      <ul>
+        <li>Em <b>Usuário</b> e <b>Senha</b>, use <b>o mesmo acesso da área logada do Portal do Franqueado</b>. Não existe senha separada para o BI.</li>
+        <li>Clique em <b>Entrar</b>. O painel abre direto nos números da sua unidade.</li>
+        <li>Se você trocar a senha do Portal do Franqueado, use a senha nova também no BI.</li>
+        <li>Por segurança, o acesso expira depois de 12 horas. Basta entrar de novo.</li>
+        <li>Para encerrar, clique em <b>Sair</b>, no canto superior direito. Faça isso sempre que usar um computador compartilhado.</li>
+      </ul>
+      <div class="box">Dica: salve o endereço nos favoritos do navegador ou adicione um atalho na tela inicial do celular.</div>
+    </div>
+    <div class="shot" style="margin-top:0"><img src="img/login.jpg" alt="Tela de login"></div>
+  </div>
+</section>
+
+<section class="sec">
+  <h2><span class="n">3</span>Conhecendo a tela</h2>
+  <div class="shot"><img src="img/periodo.jpg" alt="Cabeçalho do BI"></div>
+  <p class="cap">Cabeçalho, abas dos temas, nome da unidade, data de atualização e filtro de período.</p>
+  <h3>Abas dos temas</h3>
+  <p>A barra azul tem uma aba para cada tema: <b>Resumo, Campanha, Produção geral, Cotação x Conversão, Não renovadas, Canceladas, Comissões e Sinistros</b>. Clique em uma aba para ver só aquele assunto.</p>
+  <h3>Nome da unidade e “Dados atualizados em”</h3>
+  <p>Abaixo das abas aparecem o nome da sua unidade e a data e o horário da última atualização dos números.</p>
+  <h3>Filtro “Período”</h3>
+  <p>No canto direito de cada tema há o filtro <b>Período</b>. As opções são:</p>
+  <ul>
+    <li><b>Ano todo</b> (ou “Todos os meses”): mostra o acumulado;</li>
+    <li><b>Trimestres</b>: 1º (jan–mar), 2º (abr–jun), 3º (jul–set) e 4º (out–dez);</li>
+    <li><b>Meses</b>: um mês específico, por exemplo Setembro/2026.</li>
+  </ul>
+  <p>Ao trocar o período, todos os cartões, gráficos e tabelas da aba são recalculados para o período escolhido. Cada aba guarda o seu próprio filtro.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">4</span>Como ler os indicadores</h2>
+  <p>Na maior parte do BI, 2026 é comparado com <b>o mesmo período de 2025</b>. O indicador de crescimento segue sempre esta regra:</p>
+  <table class="t">
+    <tr><th style="width:38mm">Indicador</th><th>O que significa</th></tr>
+    <tr><td><span class="pill up">▲ 15%</span></td><td>Cresceu 15% em relação a 2025.</td></tr>
+    <tr><td><span class="pill down">▼ 8%</span></td><td>Caiu 8% em relação a 2025.</td></tr>
+    <tr><td><span class="pill eq">0%</span></td><td>Ficou igual nos dois anos (ou não houve movimento em nenhum dos dois).</td></tr>
+    <tr><td><span class="pill down">▼ 100%</span></td><td>Havia valor em 2025, e em 2026 ficou zerado.</td></tr>
+    <tr><td><span class="pill up">▲</span> (só a seta)</td><td>Não havia valor em 2025, então não existe percentual para calcular. A seta verde indica que houve produção nova em 2026.</td></tr>
+  </table>
+  <p>Embaixo do percentual, as tabelas também mostram a diferença em reais (por exemplo <b>+R$ 13.074</b>).</p>
+  <h3>Cores dos gráficos</h3>
+  <ul>
+    <li><span class="sw" style="background:#a3d9a5"></span><b>Verde-claro</b>: 2025 (ano base de comparação);</li>
+    <li><span class="sw" style="background:#072a3c"></span><b>Azul-marinho</b>: 2026 (ano atual);</li>
+    <li><span class="sw" style="background:#c1121f"></span><b>Vermelho</b>: apólices canceladas.</li>
+  </ul>
+  <p>Passe o mouse (ou toque, no celular) sobre uma barra para ver o valor exato.</p>
+  <h3>Gráficos de pizza</h3>
+  <p>As “pizzas” mostram a participação de cada ramo ou tipo no total. Os ramos menores são agrupados em <b>Outros (n)</b>, onde <i>n</i> é a quantidade de ramos somados.</p>
+  <h3>Valores</h3>
+  <p>Os valores aparecem em reais inteiros, sem os centavos, para facilitar a leitura.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">5</span>Resumo</h2>
+  <p>É a primeira tela depois do login. Mostra os principais números da unidade de uma vez só:</p>
+  <div class="shot"><img src="img/resumo.jpg" alt="Aba Resumo"></div>
+  <ul>
+    <li><b>Sua posição na campanha</b>: colocação no ranking geral e pontos acumulados;</li>
+    <li><b>Produção na campanha</b>: quanto você realizou em 2026 e o crescimento sobre 2025;</li>
+    <li><b>Conversão no ano</b>: percentual de cotações que viraram negócio, com a média da rede para comparação;</li>
+    <li><b>Apólices não renovadas</b> e <b>canceladas</b>: quantidade e prêmio líquido;</li>
+    <li><b>Comissões</b>: total recebido no ano e o crescimento sobre 2025.</li>
+  </ul>
+  <p>Para ver os detalhes, clique na aba do tema correspondente.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">6</span>Campanha — Arrancada de Vendas</h2>
+  <p>Acompanha o seu desempenho na campanha de vendas vigente.</p>
+  <div class="shot"><img src="img/campanha1.jpg" alt="Aba Campanha"></div>
+  <ul>
+    <li><b>Posição no ranking geral</b>: sua colocação entre os franqueados participantes;</li>
+    <li><b>Realizado 2026</b> x <b>Base 2025 (meta de crescimento)</b>: o objetivo da campanha é superar o que foi produzido no mesmo período de 2025;</li>
+    <li><b>Crescimento</b> e <b>Pontos</b> acumulados;</li>
+    <li><b>Meta (base 2025) x Realizado 2026 — por mês</b>: a linha tracejada vermelha marca a <b>meta mínima mensal</b>;</li>
+    <li><b>Sua posição no ranking — por mês</b>: barras douradas indicam pódio (1º a 3º lugar);</li>
+    <li>A <b>tabela mensal</b> mostra base, realizado, variação, negócios, pontos e posição de cada mês.</li>
+  </ul>
+  <p>No filtro Período também dá para escolher <b>trimestres da campanha</b>, cada um com ranking próprio.</p>
+  <div class="box alerta">Por privacidade, você vê <b>apenas a sua posição</b>. Os resultados dos outros franqueados não aparecem. As regras de pontuação estão no regulamento e no portal da campanha.</div>
+  <h3>Detalhamento por ramo e seguradora</h3>
+  <div class="shot"><img src="img/campanha2.jpg" alt="Campanha por ramo"></div>
+  <p>Mais abaixo, a produção da campanha é detalhada por <b>ramo</b> (tabela e pizza), por <b>quantidade de negócios</b> e por <b>seguradora</b>, sempre comparando 2025 e 2026.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">7</span>Produção geral</h2>
+  <p>Mostra <b>toda a produção</b> da unidade, de todos os ramos e produtos, incluindo os que não entram na campanha. Aqui não há ranking: o foco é o crescimento da sua carteira.</p>
+  <div class="shot" style="width:86%;margin-left:auto;margin-right:auto"><img src="img/producao.jpg" alt="Aba Produção geral"></div>
+  <ul>
+    <li><b>Produção 2026</b> e quantidade de negócios no período;</li>
+    <li><b>Crescimento</b> sobre o mesmo período de 2025;</li>
+    <li><b>Prêmio médio por negócio</b>;</li>
+    <li><b>Principal ramo</b> e quantos ramos estão crescendo;</li>
+    <li>Gráfico mês a mês 2025 x 2026, participação por ramo, tabelas por ramo e por seguradora e quadro de <b>quantidade de negócios</b>.</li>
+  </ul>
+  <p>Assim como a Campanha, a Produção geral é atualizada <b>todos os dias</b>, então você acompanha as vendas do mês em andamento.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">8</span>Cotação x Conversão</h2>
+  <p>Mostra quantas cotações viraram negócio fechado.</p>
+  <div class="shot"><img src="img/conversao.jpg" alt="Aba Cotação x Conversão"></div>
+  <ul>
+    <li><b>Conversão</b> = negócios efetivados ÷ cotações;</li>
+    <li>Não entram as cotações de “Renovação Própria Corretora”, e cada cliente conta uma vez por mês;</li>
+    <li><b>Média da rede</b>: conversão média de todos os franqueados, para você saber se está acima ou abaixo. Ela não mostra o número de nenhuma unidade individual;</li>
+    <li>O gráfico de linha compara a <b>sua unidade</b> com a <b>média da rede</b> mês a mês;</li>
+    <li>Também há detalhamento <b>por ramo</b>, <b>por vendedor</b> e pela <b>situação das cotações</b> (efetivado, transmitido, perdido, calculado).</li>
+  </ul>
+  <div class="box">Use a tabela por vendedor para identificar quem precisa de apoio e as cotações “Calculado” e “Transmitidos” como lista de negócios para retomar.</div>
+</section>
+
+<section class="sec">
+  <h2><span class="n">9</span>Apólices não renovadas e canceladas</h2>
+  <p>As duas abas funcionam da mesma forma. Elas listam as apólices da sua carteira que <b>não foram renovadas</b> ou que foram <b>canceladas</b>.</p>
+  <div class="shot"><img src="img/naorenovadas.jpg" alt="Aba Não renovadas"></div>
+  <ul>
+    <li><b>Total de apólices</b>, <b>prêmio líquido</b> envolvido, <b>prêmio médio</b> e principal produto;</li>
+    <li>Gráfico do prêmio por mês e tabela por produto/ramo;</li>
+    <li><b>Lista de apólices</b> com cliente, número da apólice, seguradora, produto e prêmio. Use a caixa <b>Buscar</b> para encontrar um cliente, apólice ou seguradora.</li>
+  </ul>
+  <div class="shot"><img src="img/canceladas.jpg" alt="Aba Canceladas"></div>
+  <p class="cap">Aba Canceladas: mesma estrutura, com as barras em vermelho.</p>
+  <div class="box">Essas listas são uma oportunidade: cada cliente que não renovou ou cancelou pode ser procurado para uma nova cotação.</div>
+</section>
+
+<section class="sec">
+  <h2><span class="n">10</span>Comissões</h2>
+  <p>A aba Comissões tem três subtemas, escolhidos pelos botões logo abaixo do título: <b>Recebidas</b>, <b>À receber</b> e <b>Repasses liberados</b>.</p>
+  <h3>Recebidas</h3>
+  <div class="shot"><img src="img/comissoes.jpg" alt="Comissões recebidas"></div>
+  <ul>
+    <li><b>Total recebido</b> no período, já descontados os estornos de cancelamento;</li>
+    <li>Separação por tipo de receita: <b>Seguro novo</b>, <b>Renovação</b>, <b>Endosso</b> e <b>Cancelamentos (estornos)</b>;</li>
+    <li>Comparativo 2025 x 2026 <b>no mesmo período</b>, gráfico mês a mês, participação de cada tipo (pizzas) e crescimento por ramo.</li>
+  </ul>
+  <h3 style="break-before:page">À receber</h3>
+  <div class="shot"><img src="img/areceber.jpg" alt="Comissões à receber"></div>
+  <p><b>Total a receber (nos próximos 12 meses)</b>: comissões já geradas que ainda serão repassadas. O BI compara esse valor com a <b>sua média mensal de comissões dos últimos 12 meses</b> e mostra a quantos meses de comissão ele equivale.</p>
+  <h3>Repasses liberados</h3>
+  <div class="shot"><img src="img/liberados.jpg" alt="Repasses liberados"></div>
+  <p>Valores <b>já liberados para repasse</b>, também comparados com a sua média mensal. O selo “acima/abaixo da sua média” mostra rapidamente se o repasse está maior ou menor que o habitual.</p>
+  <p class="cap">Nesses dois subtemas, a data no topo (“Posição do relatório em…”) indica de quando é o relatório usado.</p>
+</section>
+
+<section class="sec">
+  <h2><span class="n">11</span>Sinistros</h2>
+  <p>Mostra as <b>indenizações pagas pelas seguradoras</b> aos clientes da sua carteira.</p>
+  <div class="shot"><img src="img/sinistros.jpg" alt="Aba Sinistros"></div>
+  <ul>
+    <li><b>Quantidade de sinistros pagos</b>, <b>total pago</b>, <b>valor médio</b> e <b>maior sinistro</b>;</li>
+    <li>Valor pago por mês e detalhamento por ramo, seguradora e produto;</li>
+    <li>Lista com segurado, número do sinistro, seguradora, produto e valor. Use a caixa <b>Buscar</b> para filtrar.</li>
+  </ul>
+  <div class="box">Um sinistro bem atendido fideliza o cliente. Use a lista para fazer contato pós-sinistro e reforçar o relacionamento.</div>
+</section>
+
+<section class="sec">
+  <h2><span class="n">12</span>Quando os dados são atualizados</h2>
+  <p>O BI se atualiza sozinho <b>todos os dias, por volta das 10h (horário de Mato Grosso do Sul)</b>, buscando os relatórios mais recentes publicados pela franqueadora.</p>
+  <table class="t">
+    <tr><th style="width:55mm">Tema</th><th>Frequência das informações</th></tr>
+    <tr><td><b>Campanha</b> e <b>Produção geral</b></td><td>Diária: incluem as vendas lançadas até o dia anterior.</td></tr>
+    <tr><td>Cotação x Conversão, Não renovadas, Canceladas, Comissões e Sinistros</td><td>Conforme os relatórios do período são publicados pela franqueadora (em geral, mensalmente).</td></tr>
+  </table>
+  <p>A data e o horário da última atualização aparecem ao lado do nome da unidade (“Dados atualizados em…”).</p>
+  <div class="box">Se um tema aparecer vazio, normalmente o relatório daquele período ainda não foi publicado. Ele aparece automaticamente na próxima atualização.</div>
+
+  <h2 style="margin-top:9mm"><span class="n">13</span>Privacidade e segurança</h2>
+  <ul>
+    <li>Cada franqueado vê <b>somente os números da própria unidade</b>. Ninguém da rede vê os seus resultados;</li>
+    <li>No ranking da campanha aparece apenas <b>a sua posição</b>;</li>
+    <li>As comparações com a rede (como a média de conversão) usam médias gerais e nunca mostram dados de outra unidade;</li>
+    <li>O acesso é pessoal: <b>não compartilhe seu usuário e senha</b>;</li>
+    <li>Depois de várias tentativas de senha errada, o acesso é bloqueado temporariamente por segurança. Aguarde 15 minutos e tente de novo.</li>
+  </ul>
+</section>
+
+<section class="sec">
+  <h2><span class="n">14</span>Dúvidas frequentes</h2>
+  <h3>Não consigo entrar. Qual senha devo usar?</h3>
+  <p>A mesma usuário e senha da área logada do Portal do Franqueado. Confira primeiro se consegue entrar no Portal. Se esqueceu a senha, recupere-a pelo Portal.</p>
+  <h3>Entro no Portal, mas o BI diz que não tenho unidade vinculada.</h3>
+  <p>Seu login ainda não está ligado à sua unidade no BI. Fale com a equipe da franqueadora e informe o seu usuário e o nome da unidade, e o vínculo será feito.</p>
+  <h3>Tenho mais de uma unidade. Como vejo cada uma?</h3>
+  <p>Quando o login está ligado a mais de uma unidade, aparece no topo uma lista para escolher qual unidade visualizar.</p>
+  <h3>Os números do BI estão diferentes do meu controle.</h3>
+  <p>O BI usa os relatórios oficiais do sistema da franqueadora, com as mesmas regras para toda a rede. Diferenças podem ocorrer por data de lançamento, cancelamentos ou endossos. Se algo parecer errado, envie à franqueadora o tema, o período e o valor que você esperava.</p>
+  <h3>A venda de hoje não apareceu.</h3>
+  <p>Campanha e Produção geral são atualizadas uma vez por dia, por volta das 10h, com o que foi lançado até então. A venda aparece na próxima atualização.</p>
+  <h3>Posso acessar pelo celular?</h3>
+  <div class="duas" style="grid-template-columns:1fr 32mm">
+    <div>
+      <p>Sim. O BI funciona em qualquer navegador, no computador, tablet ou celular, sem precisar instalar aplicativo.</p>
+      <p>No celular, os cartões ficam um embaixo do outro. A barra de abas e as tabelas mais largas podem ser arrastadas para o lado com o dedo.</p>
+    </div>
+    <div class="shot" style="margin-top:0"><img src="img/celular.jpg" alt="BI no celular"></div>
+  </div>
+
+  <div class="box" style="margin-top:3mm">
+    <b>Precisa de ajuda?</b> Fale com a equipe da <b>Piaseg Franchising</b> pelos canais de atendimento ao franqueado.
+  </div>
+</section>
+
+</body>
+</html>

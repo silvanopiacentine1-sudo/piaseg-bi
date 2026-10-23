@@ -507,10 +507,18 @@ def carregar_comissoes():
             mes_nome = next((i + 1 for i, m in enumerate(MESES) if normalizar(m) in normalizar(os.path.basename(f))), None)
             col_data = next((c for n, c in cols.items() if "DATA" in n or "PAGAMENTO" in n), None)
             df["_MES"] = pd.to_datetime(df[col_data], errors="coerce", dayfirst=True).dt.month if col_data else mes_nome
+            if "UNIDADE DE NEGOCIO" not in cols or "VALOR" not in cols:
+                print(f"  AVISO: comissões — '{ano}/{os.path.basename(f)}' sem as colunas UNIDADE DE NEGÓCIO/VALOR (arquivo ignorado)")
+                continue
+            faltam = [n for n, c in (("NEGÓCIO", "NEGOCIO"), ("CÉLULA", "CELULA")) if c not in cols]
+            if faltam:   # entra no total, mas sem a divisão novo/renovação/endosso e por ramo
+                print(f"  AVISO: comissões — '{ano}/{os.path.basename(f)}' sem a coluna {' e '.join(faltam)} "
+                      f"(entra só no total; reexporte o relatório completo)")
             df["_F"] = df[cols["UNIDADE DE NEGOCIO"]].apply(canonico)
-            df["_T"] = df[cols["NEGOCIO"]].astype(str).str.strip().str.upper().map(TIPO_NEGOCIO).fillna("outros")
+            df["_T"] = (df[cols["NEGOCIO"]].astype(str).str.strip().str.upper().map(TIPO_NEGOCIO).fillna("outros")
+                        if "NEGOCIO" in cols else "outros")
             df["_V"] = pd.to_numeric(df[cols["VALOR"]], errors="coerce").fillna(0)
-            df["_C"] = df[cols["CELULA"]].astype(str).str.strip()
+            df["_C"] = df[cols["CELULA"]].astype(str).str.strip() if "CELULA" in cols else ""
             df = df[df["_F"].notna()]
             arquivos.setdefault(ano, []).append(os.path.basename(f))
             g = df.groupby(["_F", "_MES", "_T", "_C"], dropna=False)["_V"].agg(["sum", "count"])

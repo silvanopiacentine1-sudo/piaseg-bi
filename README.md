@@ -56,7 +56,7 @@ Painel único por franqueado (login do Portal do Franqueado), **no ar desde 14/1
 ## Pendências em aberto
 
 1. Conversão acima de 100%: as cotações excluem "Renovação Própria Corretora", mas os efetivados incluem renovações (mesma regra do Indicador original). Falta decidir.
-2. (21/10/2026: vinculados carolinamorales_02@hotmail.com → TERRA e fortezsolucoespatrimoniais@gmail.com → LINDOMAR ANTONIO PERUSSATTO; 22/10: contato@piasegcampinas.com.br (Rafael Ribeiro, Piaseg Campinas) → PASQUALATO.) Logins sem vínculo: Ricardo Macedo Portela, Ernani, Frutuoso, Mano Motors, Vale Representações etc. Para vincular, editar a variável **BI_VINCULOS_JSON no Render** (e o `vinculos.json` local, usado só no Mac).
+2. (21/10/2026: vinculados carolinamorales_02@hotmail.com → TERRA e fortezsolucoespatrimoniais@gmail.com → LINDOMAR ANTONIO PERUSSATTO; 22/10: contato@piasegcampinas.com.br (Rafael Ribeiro, Piaseg Campinas) → PASQUALATO; 28/10: claudia.moura@piaseg.com.br (Claudia Moura) → CLAUDIA TATIANE DE MOURA.) Logins sem vínculo: Ricardo Macedo Portela, Ernani, Frutuoso, Mano Motors, Vale Representações etc. Para vincular, editar a variável **BI_VINCULOS_JSON no Render** (e o `vinculos.json` local, usado só no Mac).
 3. Pipeline da campanha (outro projeto): Outubro/26 do ranking da campanha está subestimado (só um dos exports diários é usado). Aguardando autorização para corrigir. A Produção geral do BI já junta todos os downloads.
 4. Subpastas novas que eventualmente surgirem no Drive só entram no BI se forem pedidas (ex.: novas pastas dentro de Comissões).
 

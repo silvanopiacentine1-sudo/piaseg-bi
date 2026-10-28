@@ -73,6 +73,7 @@ Resolvido: publicação online feita em 14/10/2026 (Render, ver abaixo).
   - o build roda em processo separado; se der erro ou o resultado for suspeito (muito menos franqueados que antes), **a versão anterior continua no ar**. A última versão boa também fica em `bi_data.anterior.json`.
 - **Registro de acessos** (botão "Acessos", só gestor): SQLite em `/var/data/acessos.db`. Uma visita começa no 1º sinal da página depois do login (ou depois de 30 min sem sinal); a página manda sinal a cada 2 min enquanto está visível; a saída é o clique em "Sair" ou o último sinal. Filtros por unidade e período (7/30/90/365 dias), resumo por unidade com "nunca acessou". Registros com mais de 400 dias são apagados.
 - O gestor (`admin`) tem o botão **"⟳ Atualizar dados"**: mostra o status, os avisos e permite forçar uma atualização completa.
+- **Deploy e documentação (28/10/2026):** o Render tem `buildFilter.ignoredPaths = [README.md, manual/**]`, ou seja, commits só de README/manual NÃO reiniciam o BI. Qualquer outro push reinicia o serviço e deixa ~1 min de erro 502 (no navegador aparece "Unexpected token '<'... is not valid JSON"). Preferir publicar código fora do horário de uso.
 - Segurança: sessão assinada de 12 h, bloqueio de 15 min após 8 senhas erradas (por IP e por usuário), cabeçalhos de segurança, sem páginas de documentação da API.
 - O Campanha depende da planilha `Comparativo_Campanha_Jan25_vs_Jan26.xlsx`, gerada pela automação da campanha (Render `piaseg-campanha-cron`). Se essa automação for desligada, o tema Campanha para de atualizar.
 

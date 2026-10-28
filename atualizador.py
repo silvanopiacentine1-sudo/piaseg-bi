@@ -184,11 +184,12 @@ def sincronizar(pastas):
     return svc, avisos
 
 
-def campanha_atualizada_hoje(svc):
-    """A planilha da campanha é regerada pela automação da campanha por volta das 10h; confere se já é a de hoje."""
-    pasta = _achar_pasta(svc, PASTAS_DIARIAS[0])
-    r = _listar(svc, f"'{pasta}' in parents and name = 'Comparativo_Campanha_Jan25_vs_Jan26.xlsx' and trashed = false")
-    return bool(r) and datetime.fromtimestamp(_ts(r[0]["modifiedTime"]), FUSO).date() == agora().date()
+def campanha_atualizada_hoje():
+    """A planilha da campanha é regerada pela automação da campanha por volta das 10h; confere se a CÓPIA BAIXADA
+    (a que o build lê, com a data do Drive) já é a de hoje. Consultar o Drive depois de baixar dava falso positivo
+    quando a planilha nova chegava no meio da atualização (28/10/2026: BI ficou com a planilha do dia anterior)."""
+    c = os.path.join(ESPELHO, PASTAS_DIARIAS[0], "Comparativo_Campanha_Jan25_vs_Jan26.xlsx")
+    return os.path.exists(c) and datetime.fromtimestamp(os.path.getmtime(c), FUSO).date() == agora().date()
 
 
 # ------------------------------------------------------------------ build
@@ -259,7 +260,7 @@ def atualizar(modo):
         _status(rodando=modo, inicio=agora().isoformat(timespec="minutes"))
         pastas = PASTAS_DIARIAS + (PASTAS_MENSAIS if modo == "mensal" else [])
         svc, avisos_drive = sincronizar(pastas)
-        fresca = campanha_atualizada_hoje(svc)
+        fresca = campanha_atualizada_hoje()
         # o mensal só conta como feito se TODAS as pastas foram lidas; senão a agenda tenta de novo
         mensal_ok = modo == "mensal" and not avisos_drive
         avisos = avisos_drive + gerar_dados(mensal_ok)

@@ -333,27 +333,38 @@ def _data(v):
 
 
 def carregar_nao_renovadas():
-    f = _mais_recente(PASTA_NAO_RENOVADAS)
-    if not f:
+    # Todos os arquivos da pasta SOMAM (regra de 2026-10-30: o usuário passou a salvar um relatório por mês,
+    # ex. "10 out 2026.XLS" só com outubro). A mesma apólice em dois arquivos conta uma vez; vale o arquivo mais novo.
+    arqs = sorted(
+        (f for f in glob.glob(os.path.join(PASTA_NAO_RENOVADAS, "*.[xX][lL][sS]*")) if not os.path.basename(f).startswith("~")),
+        key=os.path.getmtime,
+    )
+    if not arqs:
         print(f"  AVISO: nenhum relatório encontrado em '{os.path.basename(PASTA_NAO_RENOVADAS)}' — tema fica vazio até a próxima atualização")
         return {}, None
-    df = pd.read_excel(f)
-    cols = {normalizar(c): c for c in df.columns}
+    por_chave = {}
+    for f in arqs:
+        df = pd.read_excel(f)
+        cols = {normalizar(c): c for c in df.columns}
+        for _, r in df.iterrows():
+            franq = canonico(r[cols["UNIDADE DE NEGOCIO"]])
+            if not franq:
+                continue
+            termino = _data(r[cols["TERMINO DE VIGENCIA"]])
+            item = {
+                "cliente": str(r[cols["CLIENTE"]]).strip(),
+                "apolice": str(r[cols["APOLICE"]]).strip(),
+                "seguradora": str(r[cols["SEGURADORA"]]).strip(),
+                "produto": str(r[cols["PRODUTO"]]).strip(),
+                "data": termino.isoformat() if termino else None,
+                "premio": num(r[cols["PREMIO LIQUIDO"]]) or 0,
+            }
+            doc = str(r[cols["CPF/CNPJ"]]).strip() if "CPF/CNPJ" in cols else item["cliente"]
+            por_chave[(normalizar(item["seguradora"]), item["apolice"], item["data"], doc)] = (franq, item)
     out = {}
-    for _, r in df.iterrows():
-        franq = canonico(r[cols["UNIDADE DE NEGOCIO"]])
-        if not franq:
-            continue
-        termino = _data(r[cols["TERMINO DE VIGENCIA"]])
-        out.setdefault(franq, []).append({
-            "cliente": str(r[cols["CLIENTE"]]).strip(),
-            "apolice": str(r[cols["APOLICE"]]).strip(),
-            "seguradora": str(r[cols["SEGURADORA"]]).strip(),
-            "produto": str(r[cols["PRODUTO"]]).strip(),
-            "data": termino.isoformat() if termino else None,
-            "premio": num(r[cols["PREMIO LIQUIDO"]]) or 0,
-        })
-    return out, _quando_arquivo(f)
+    for franq, item in por_chave.values():
+        out.setdefault(franq, []).append(item)
+    return out, _quando_arquivo(arqs[-1])
 
 
 def carregar_canceladas():
